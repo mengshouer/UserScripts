@@ -1,0 +1,51 @@
+name: Build and Deploy UserScripts
+
+on:
+  push:
+    branches: [ main, master ]
+    paths-ignore:
+      - '*.md'
+      - '.gitignore'
+      - 'LICENSE'
+      - '.eslint*'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+
+    - name: Install dependencies
+      run: npm i
+
+    - name: Build all scripts
+      run: npm run build:all
+
+    - name: Git push assets to "release" branch
+      run: |
+        cd dist || exit 1
+        git init
+        git config --local user.name "github-actions[bot]"
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git checkout -b release
+        git add .
+        git commit -m "Released on ${{ github.sha }}"
+        git remote add origin "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
+        git push -f -u origin release
+      
+    - name: Purge jsdelivr CDN
+      run: |
+        cd dist || exit 1
+        for file in $(ls); do
+          curl -i "https://purge.jsdelivr.net/gh/${{ github.repository }}@release/${file}"
+        done
