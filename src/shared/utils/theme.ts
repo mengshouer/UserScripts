@@ -1,4 +1,4 @@
-import { ThemeConfig } from '../types';
+import type { ThemeConfig } from '../types';
 
 /**
  * 检测是否为暗色主题

@@ -21,6 +21,9 @@ export interface DownloaderSettings extends BaseSettings {
   // 视频相关设置
   videoFileName: string;
   showVideoDownloadButton: boolean;
+  // 按钮样式设置
+  imageButtonStyle: Record<string, string | number>;
+  videoButtonStyle: Record<string, string | number>;
 }
 
 // 组件通用 props
@@ -39,7 +42,7 @@ export interface ModalProps extends BaseComponentProps {
 export interface ButtonProps extends BaseComponentProps {
   onClick?: () => void;
   disabled?: boolean;
-  variant?: 'primary' | 'secondary' | 'danger';
-  size?: 'small' | 'medium' | 'large';
+  variant?: "primary" | "secondary" | "danger";
+  size?: "small" | "medium" | "large";
   children: any;
 }

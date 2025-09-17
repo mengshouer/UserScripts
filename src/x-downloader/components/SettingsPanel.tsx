@@ -1,6 +1,7 @@
 import { useState } from "preact/hooks";
 import { Modal, Button, Input, Checkbox, useTheme } from "../../shared";
 import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
+import { StyleEditor } from "./StyleEditor";
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -24,6 +25,13 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const [showVideoDownloadButton, setShowVideoDownloadButton] = useState(
     settingsManager.settings.showVideoDownloadButton
   );
+  // 按钮样式设置状态
+  const [imageButtonStyle, setImageButtonStyle] = useState(
+    settingsManager.settings.imageButtonStyle
+  );
+  const [videoButtonStyle, setVideoButtonStyle] = useState(
+    settingsManager.settings.videoButtonStyle
+  );
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">(
     "idle"
   );
@@ -36,6 +44,8 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
       showDownloadButton,
       videoFileName,
       showVideoDownloadButton,
+      imageButtonStyle,
+      videoButtonStyle,
     });
 
     setSaveStatus("saved");
@@ -48,6 +58,8 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     setShowDownloadButton(defaultSettings.showDownloadButton);
     setVideoFileName(defaultSettings.videoFileName);
     setShowVideoDownloadButton(defaultSettings.showVideoDownloadButton);
+    setImageButtonStyle(defaultSettings.imageButtonStyle);
+    setVideoButtonStyle(defaultSettings.videoButtonStyle);
   };
 
   const fieldStyle = {
@@ -110,6 +122,18 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           </Checkbox>
         </div>
 
+        <div style={fieldStyle}>
+          <label style={labelStyle}>图片下载按钮样式</label>
+          <StyleEditor
+            value={imageButtonStyle}
+            onChange={setImageButtonStyle}
+            placeholder='{\n  "top": "8px",\n  "right": "8px"\n}'
+          />
+          <div style={helpTextStyle}>
+            支持所有 CSS 样式属性，如 position、top、right、left、bottom、zIndex、background、border 等
+          </div>
+        </div>
+
         {/* 视频下载设置 */}
         <div style={sectionTitleStyle}>视频下载设置</div>
 
@@ -132,6 +156,18 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           >
             显示视频下载按钮
           </Checkbox>
+        </div>
+
+        <div style={fieldStyle}>
+          <label style={labelStyle}>视频下载按钮样式</label>
+          <StyleEditor
+            value={videoButtonStyle}
+            onChange={setVideoButtonStyle}
+            placeholder='{\n  "top": "8px",\n  "right": "8px"\n}'
+          />
+          <div style={helpTextStyle}>
+            支持所有 CSS 样式属性，如 position、top、right、left、bottom、zIndex、background、border 等
+          </div>
         </div>
 
         {/* 按钮组 */}

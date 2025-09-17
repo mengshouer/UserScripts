@@ -1,7 +1,12 @@
 import { useState } from "preact/hooks";
-import { preventEventPropagation, downloadFile, generateFileName, extractUrlInfo } from "../../shared";
+import {
+  downloadFile,
+  generateFileName,
+  extractUrlInfo,
+} from "../../shared";
 import { extractVideoUrl, getTweetIdFromElement } from "../utils/videoUtils";
 import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
+import { DownloadButton } from "./DownloadButton";
 
 interface VideoDownloadButtonProps {
   tweetContainer: HTMLElement;
@@ -15,9 +20,7 @@ export function VideoDownloadButton({
 }: VideoDownloadButtonProps) {
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const handleDownload = async (e: MouseEvent) => {
-    preventEventPropagation(e);
-
+  const handleDownload = async () => {
     if (isDownloading) return;
 
     setIsDownloading(true);
@@ -41,7 +44,9 @@ export function VideoDownloadButton({
       let urlInfo;
       try {
         // 尝试从 Tweet 容器中的链接获取信息
-        const tweetLink = tweetContainer.querySelector('a[href*="/status/"]') as HTMLAnchorElement;
+        const tweetLink = tweetContainer.querySelector(
+          'a[href*="/status/"]'
+        ) as HTMLAnchorElement;
         if (tweetLink) {
           urlInfo = extractUrlInfo(tweetLink.href);
         } else {
@@ -54,11 +59,14 @@ export function VideoDownloadButton({
       }
 
       // 使用设置中的视频文件名格式
-      const filename = generateFileName(settingsManager.settings.videoFileName, {
-        Userid: urlInfo.userid,
-        Tid: urlInfo.tid,
-        Time: Date.now().toString(),
-      });
+      const filename = generateFileName(
+        settingsManager.settings.videoFileName,
+        {
+          Userid: urlInfo.userid,
+          Tid: urlInfo.tid,
+          Time: Date.now().toString(),
+        }
+      );
 
       // 下载视频
       await downloadFile(videoUrl, `${filename}.mp4`);
@@ -73,86 +81,11 @@ export function VideoDownloadButton({
   };
 
   return (
-    <button
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: "36px",
-        height: "36px",
-        borderRadius: "50%",
-        background: "rgba(0, 0, 0, 0.8)",
-        border: "2px solid rgba(255, 255, 255, 0.9)",
-        cursor: isDownloading ? "not-allowed" : "pointer",
-        opacity: isDownloading ? 0.5 : 0.9,
-        transition: "opacity 0.2s ease, transform 0.2s ease",
-        transform: isDownloading ? "scale(0.95)" : "scale(1)",
-      }}
-      onClick={handleDownload}
-      onMouseDown={(e) => {
-        e.preventDefault();
-        return false;
-      }}
-      onMouseEnter={(e) => {
-        if (!isDownloading) {
-          e.currentTarget.style.opacity = "1";
-          e.currentTarget.style.transform = "scale(1.05)";
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!isDownloading) {
-          e.currentTarget.style.opacity = "0.9";
-          e.currentTarget.style.transform = "scale(1)";
-        }
-      }}
+    <DownloadButton
+      onDownload={handleDownload}
       title={isDownloading ? "下载中..." : "下载视频"}
-      disabled={isDownloading}
-    >
-      {isDownloading ? (
-        // 加载图标
-        <svg
-          style={{
-            width: "18px",
-            height: "18px",
-            animation: "spin 1s linear infinite",
-          }}
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-            fill="none"
-            strokeDasharray="31.416"
-            strokeDashoffset="15.708"
-            style={{ color: "white" }}
-          />
-        </svg>
-      ) : (
-        // 下载图标（视频专用，更简洁的设计）
-        <svg
-          style={{ width: "20px", height: "20px" }}
-          xmlns="http://www.w3.org/2000/svg"
-          fill="white"
-          viewBox="0 0 24 24"
-        >
-          <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
-        </svg>
-      )}
-      <style jsx>{`
-        @keyframes spin {
-          0% {
-            transform: rotate(0deg);
-          }
-          100% {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
-    </button>
+      isDownloading={isDownloading}
+      style={settingsManager.settings.videoButtonStyle || {}}
+    />
   );
 }

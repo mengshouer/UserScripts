@@ -6,7 +6,9 @@
     "build": "node build.js",
     "build:all": "node build.js all",
     "build:list": "node build.js list",
-    "lint": "eslint *.ts *.js *.tsx"
+    "lint": "eslint src/ --ext .ts,.tsx,.js",
+    "lint:fix": "eslint src/ --ext .ts,.tsx,.js --fix",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [
     "userscript",

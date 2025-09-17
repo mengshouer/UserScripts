@@ -1,5 +1,5 @@
 import { createSettingsHook } from "../../shared/hooks/useSettings";
-import { DownloaderSettings } from "../../shared/types";
+import type { DownloaderSettings } from "../../shared/types";
 
 const DEFAULT_SETTINGS: DownloaderSettings = {
   fileName: "<%Userid> <%Tid>_p<%PicNo>",
@@ -7,6 +7,15 @@ const DEFAULT_SETTINGS: DownloaderSettings = {
   // 视频相关设置
   videoFileName: "<%Userid> <%Tid>",
   showVideoDownloadButton: true,
+  // 按钮样式设置
+  imageButtonStyle: {
+    top: "8px",
+    right: "8px",
+  },
+  videoButtonStyle: {
+    top: "8px",
+    right: "8px",
+  },
 };
 
 const STORAGE_KEY = "x-downloader-settings";

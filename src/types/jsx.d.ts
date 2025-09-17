@@ -1,5 +1,5 @@
 // JSX 类型声明文件
-import { JSX as PreactJSX } from 'preact';
+import type { JSX as PreactJSX } from 'preact';
 
 declare global {
   namespace JSX {

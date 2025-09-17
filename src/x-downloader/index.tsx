@@ -14,7 +14,7 @@
 
 import { render } from "preact";
 import { App } from "./components/App";
-import { DownloadButton } from "./components/DownloadButton";
+import { ImageDownloadButton } from "./components/ImageDownloadButton";
 import { VideoDownloadButton } from "./components/VideoDownloadButton";
 import { useDownloaderSettings } from "./hooks/useDownloaderSettings";
 import {
@@ -50,10 +50,6 @@ function setupImageInteraction(img: HTMLImageElement): void {
 
   // 创建下载按钮容器（初始隐藏）
   const buttonContainer = document.createElement("div");
-  buttonContainer.style.position = "absolute";
-  buttonContainer.style.top = "8px";
-  buttonContainer.style.right = "8px";
-  buttonContainer.style.zIndex = "1000";
   buttonContainer.style.display = "none";
   buttonContainer.setAttribute("data-image-download-button", "true");
 
@@ -61,7 +57,7 @@ function setupImageInteraction(img: HTMLImageElement): void {
   imageContainer.appendChild(buttonContainer);
 
   // 渲染图片下载按钮
-  render(<DownloadButton targetImage={img} />, buttonContainer);
+  render(<ImageDownloadButton targetImage={img} />, buttonContainer);
 
   // 存储按钮容器引用
   imageButtonContainers.set(img, buttonContainer);
@@ -155,10 +151,6 @@ function setupVideoInteraction(video: HTMLVideoElement): void {
 
   // 创建下载按钮容器（初始隐藏）
   const buttonContainer = document.createElement("div");
-  buttonContainer.style.position = "absolute";
-  buttonContainer.style.top = "8px";
-  buttonContainer.style.right = "8px";
-  buttonContainer.style.zIndex = "1000";
   buttonContainer.style.display = "none";
   buttonContainer.setAttribute("data-video-download-button", "true");
 
@@ -186,19 +178,6 @@ function setupVideoInteraction(video: HTMLVideoElement): void {
   // 鼠标进入视频容器时显示按钮
   videoContainer.addEventListener("mouseenter", showButton);
   videoContainer.addEventListener("mouseleave", hideButton);
-
-  // 视频暂停时显示按钮
-  video.addEventListener("pause", showButton);
-
-  // 视频播放时，如果鼠标不在容器内则隐藏按钮
-  video.addEventListener("play", () => {
-    // 简单延迟检查，避免复杂的鼠标追踪
-    setTimeout(() => {
-      if (!videoContainer.matches(":hover")) {
-        hideButton();
-      }
-    }, 500);
-  });
 
   // 清理函数
   const cleanup = () => {

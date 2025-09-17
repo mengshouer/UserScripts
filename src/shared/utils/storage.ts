@@ -1,4 +1,4 @@
-import { BaseSettings } from '../types';
+import type { BaseSettings } from '../types';
 
 /**
  * 通用的本地存储管理器

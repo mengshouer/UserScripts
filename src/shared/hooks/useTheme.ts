@@ -1,6 +1,6 @@
 import { signal, computed } from '@preact/signals-core';
 import { getThemeConfig } from '../utils/theme';
-import { ThemeConfig } from '../types';
+import type { ThemeConfig } from '../types';
 
 // 主题信号
 const themeSignal = signal<ThemeConfig>(getThemeConfig());
