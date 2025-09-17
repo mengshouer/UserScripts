@@ -1,7 +1,8 @@
-import { useTheme } from '../hooks/useTheme';
+import { useTheme } from "../hooks/useTheme";
+import { styled } from "../utils/goober-setup";
 
 interface InputProps {
-  type?: 'text' | 'email' | 'password' | 'number';
+  type?: "text" | "email" | "password" | "number";
   value?: string;
   defaultValue?: string;
   placeholder?: string;
@@ -13,8 +14,25 @@ interface InputProps {
   style?: Record<string, string | number>;
 }
 
+const StyledInput = styled("input")`
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--input-text);
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    border-color: #1da1f2;
+  }
+`;
+
 export function Input({
-  type = 'text',
+  type = "text",
   value,
   defaultValue,
   placeholder,
@@ -22,27 +40,20 @@ export function Input({
   onChange,
   onBlur,
   onFocus,
-  className = '',
+  className = "",
   style = {},
 }: InputProps) {
   const { theme } = useTheme();
 
   const inputStyle = {
-    width: '100%',
-    padding: '8px 12px',
-    border: `1px solid ${theme.inputBorder}`,
-    background: theme.inputBackground,
-    color: theme.textColor,
-    borderRadius: '6px',
-    fontSize: '14px',
-    boxSizing: 'border-box' as const,
-    outline: 'none',
-    transition: 'border-color 0.2s ease',
+    "--input-border": theme.inputBorder,
+    "--input-bg": theme.inputBackground,
+    "--input-text": theme.textColor,
     ...style,
   };
 
   return (
-    <input
+    <StyledInput
       type={type}
       value={value}
       defaultValue={defaultValue}
@@ -53,12 +64,6 @@ export function Input({
       onChange={(e) => onChange?.(e.currentTarget.value)}
       onBlur={onBlur}
       onFocus={onFocus}
-      onFocusCapture={(e) => {
-        e.currentTarget.style.borderColor = '#1da1f2';
-      }}
-      onBlurCapture={(e) => {
-        e.currentTarget.style.borderColor = theme.inputBorder;
-      }}
     />
   );
 }

@@ -32,7 +32,7 @@ function discoverScripts(): Record<string, { source: string; output: string }> {
 
     // 查找 index.tsx 或 index.ts 文件
     const indexFiles = ['index.tsx', 'index.ts'];
-    let entryFile = null;
+    let entryFile: string | null = null;
 
     for (const fileName of indexFiles) {
       const filePath = join(scriptDir, fileName);

@@ -1,9 +1,5 @@
 import { useState } from "preact/hooks";
-import {
-  downloadFile,
-  generateFileName,
-  extractUrlInfo,
-} from "../../shared";
+import { downloadFile, generateFileName, extractUrlInfo } from "../../shared";
 import { extractVideoUrl, getTweetIdFromElement } from "../utils/videoUtils";
 import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
 import { DownloadButton } from "./DownloadButton";

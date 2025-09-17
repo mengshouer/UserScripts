@@ -1,4 +1,5 @@
-import { useTheme } from '../hooks/useTheme';
+import { useTheme } from "../hooks/useTheme";
+import { styled } from "../utils/goober-setup";
 
 interface CheckboxProps {
   checked?: boolean;
@@ -10,43 +11,49 @@ interface CheckboxProps {
   style?: Record<string, string | number>;
 }
 
+const Label = styled("label")`
+  display: flex;
+  align-items: center;
+  cursor: var(--cursor);
+  color: var(--text-color);
+  opacity: var(--opacity);
+`;
+
+const CheckboxInput = styled("input")`
+  margin-right: 8px;
+  accent-color: #1da1f2;
+  cursor: var(--cursor);
+`;
+
 export function Checkbox({
   checked,
   defaultChecked,
   disabled = false,
   onChange,
   children,
-  className = '',
+  className = "",
   style = {},
 }: CheckboxProps) {
   const { theme } = useTheme();
 
-  const labelStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    color: theme.textColor,
-    opacity: disabled ? 0.6 : 1,
+  const checkboxStyle = {
+    "--cursor": disabled ? "not-allowed" : "pointer",
+    "--text-color": theme.textColor,
+    "--opacity": disabled ? "0.6" : "1",
     ...style,
   };
 
-  const checkboxStyle = {
-    marginRight: '8px',
-    accentColor: '#1da1f2',
-    cursor: disabled ? 'not-allowed' : 'pointer',
-  };
-
   return (
-    <label className={className} style={labelStyle}>
-      <input
+    <Label className={className} style={checkboxStyle}>
+      <CheckboxInput
         type="checkbox"
         checked={checked}
         defaultChecked={defaultChecked}
         disabled={disabled}
-        style={checkboxStyle}
         onChange={(e) => onChange?.(e.currentTarget.checked)}
+        style={{ "--cursor": disabled ? "not-allowed" : "pointer" }}
       />
       {children}
-    </label>
+    </Label>
   );
 }

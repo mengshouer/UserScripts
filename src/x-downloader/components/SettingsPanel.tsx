@@ -1,5 +1,5 @@
 import { useState } from "preact/hooks";
-import { Modal, Button, Input, Checkbox, useTheme } from "../../shared";
+import { Modal, Button, Input, Checkbox, useTheme, styled } from "../../shared";
 import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
 import { StyleEditor } from "./StyleEditor";
 
@@ -7,6 +7,39 @@ interface SettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const SectionTitle = styled("div")`
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 12px;
+  margin-top: 20px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+`;
+
+const FieldContainer = styled("div")`
+  margin-bottom: 16px;
+`;
+
+const Label = styled("label")`
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: var(--text-color);
+`;
+
+const HelpText = styled("div")`
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--secondary-text-color);
+`;
+
+const ButtonGroup = styled("div")`
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+`;
 
 // 在组件外部创建设置管理器实例
 const settingsManager = useDownloaderSettings();
@@ -62,116 +95,84 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     setVideoButtonStyle(defaultSettings.videoButtonStyle);
   };
 
-  const fieldStyle = {
-    marginBottom: "16px",
-  };
-
-  const labelStyle = {
-    display: "block",
-    marginBottom: "6px",
-    fontWeight: "500",
-    color: theme.textColor,
-  };
-
-  const helpTextStyle = {
-    marginTop: "4px",
-    fontSize: "12px",
-    color: theme.secondaryTextColor,
-  };
-
-  const buttonGroupStyle = {
-    display: "flex",
-    gap: "12px",
-    marginTop: "24px",
-  };
-
-  const sectionTitleStyle = {
-    fontSize: "16px",
-    fontWeight: "600",
-    color: theme.textColor,
-    marginBottom: "12px",
-    marginTop: "20px",
-    paddingBottom: "8px",
-    borderBottom: `1px solid ${theme.borderColor}`,
+  // 使用 CSS 变量传递主题值
+  const themeVariables = {
+    "--text-color": theme.textColor,
+    "--secondary-text-color": theme.secondaryTextColor,
+    "--border-color": theme.borderColor,
   };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="X(Twitter) Downloader 设置">
-      <div>
+      <div style={themeVariables}>
         {/* 图片下载设置 */}
-        <div style={sectionTitleStyle}>图片下载设置</div>
+        <SectionTitle>图片下载设置</SectionTitle>
 
-        <div style={fieldStyle}>
-          <label style={labelStyle}>图片文件名格式</label>
+        <FieldContainer>
+          <Label>图片文件名格式</Label>
           <Input
             value={fileName}
             onChange={setFileName}
             placeholder="<%Userid> <%Tid>_p<%PicNo>"
           />
-          <div style={helpTextStyle}>
+          <HelpText>
             可用变量：&lt;%Userid&gt;、&lt;%Tid&gt;、&lt;%Time&gt;、&lt;%PicName&gt;、&lt;%PicNo&gt;
-          </div>
-        </div>
+          </HelpText>
+        </FieldContainer>
 
-        <div style={fieldStyle}>
+        <FieldContainer>
           <Checkbox
             checked={showDownloadButton}
             onChange={setShowDownloadButton}
           >
             显示图片下载按钮
           </Checkbox>
-        </div>
+        </FieldContainer>
 
-        <div style={fieldStyle}>
-          <label style={labelStyle}>图片下载按钮样式</label>
+        <FieldContainer>
+          <Label>图片下载按钮 CSS 样式属性</Label>
           <StyleEditor
             value={imageButtonStyle}
             onChange={setImageButtonStyle}
-            placeholder='{\n  "top": "8px",\n  "right": "8px"\n}'
+            placeholder='{\n  "bottom": "8px",\n  "left": "8px"\n}'
           />
-          <div style={helpTextStyle}>
-            支持所有 CSS 样式属性，如 position、top、right、left、bottom、zIndex、background、border 等
-          </div>
-        </div>
+        </FieldContainer>
 
         {/* 视频下载设置 */}
-        <div style={sectionTitleStyle}>视频下载设置</div>
+        <SectionTitle>视频下载设置</SectionTitle>
 
-        <div style={fieldStyle}>
-          <label style={labelStyle}>视频文件名格式</label>
+        <FieldContainer>
+          <Label>视频文件名格式</Label>
           <Input
             value={videoFileName}
             onChange={setVideoFileName}
             placeholder="<%Userid> <%Tid>_video_<%Time>"
           />
-          <div style={helpTextStyle}>
+          <HelpText>
             可用变量：&lt;%Userid&gt;、&lt;%Tid&gt;、&lt;%Time&gt;
-          </div>
-        </div>
+          </HelpText>
+        </FieldContainer>
 
-        <div style={fieldStyle}>
+        <FieldContainer>
           <Checkbox
             checked={showVideoDownloadButton}
             onChange={setShowVideoDownloadButton}
           >
             显示视频下载按钮
           </Checkbox>
-        </div>
+        </FieldContainer>
 
-        <div style={fieldStyle}>
-          <label style={labelStyle}>视频下载按钮样式</label>
+        <FieldContainer>
+          <Label>视频下载按钮 CSS 样式属性</Label>
           <StyleEditor
             value={videoButtonStyle}
             onChange={setVideoButtonStyle}
-            placeholder='{\n  "top": "8px",\n  "right": "8px"\n}'
+            placeholder='{\n  "bottom": "50px",\n  "right": "8px"\n}'
           />
-          <div style={helpTextStyle}>
-            支持所有 CSS 样式属性，如 position、top、right、left、bottom、zIndex、background、border 等
-          </div>
-        </div>
+        </FieldContainer>
 
         {/* 按钮组 */}
-        <div style={buttonGroupStyle}>
+        <ButtonGroup>
           <Button
             variant="primary"
             onClick={handleSave}
@@ -183,7 +184,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           <Button variant="secondary" onClick={handleReset}>
             重置
           </Button>
-        </div>
+        </ButtonGroup>
       </div>
     </Modal>
   );

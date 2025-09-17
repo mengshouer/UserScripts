@@ -9,11 +9,11 @@ const DEFAULT_SETTINGS: DownloaderSettings = {
   showVideoDownloadButton: true,
   // 按钮样式设置
   imageButtonStyle: {
-    top: "8px",
+    bottom: "8px",
     right: "8px",
   },
   videoButtonStyle: {
-    top: "8px",
+    bottom: "70px",
     right: "8px",
   },
 };

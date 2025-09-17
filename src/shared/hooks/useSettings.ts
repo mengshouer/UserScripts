@@ -1,6 +1,6 @@
-import { signal, computed } from '@preact/signals-core';
-import { StorageManager } from '../utils/storage';
-import type { BaseSettings } from '../types';
+import { signal, computed } from "@preact/signals-core";
+import { StorageManager } from "../utils/storage";
+import type { BaseSettings } from "../types";
 
 /**
  * 设置管理 Hook

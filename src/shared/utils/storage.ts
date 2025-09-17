@@ -1,13 +1,10 @@
-import type { BaseSettings } from '../types';
+import type { BaseSettings } from "../types";
 
 /**
  * 通用的本地存储管理器
  */
 export class StorageManager<T extends BaseSettings> {
-  constructor(
-    private storageKey: string,
-    private defaultSettings: T
-  ) {}
+  constructor(private storageKey: string, private defaultSettings: T) {}
 
   /**
    * 加载设置
@@ -20,7 +17,7 @@ export class StorageManager<T extends BaseSettings> {
         return { ...this.defaultSettings, ...parsed };
       }
     } catch (error) {
-      console.log('Failed to load settings:', error);
+      console.log("Failed to load settings:", error);
     }
     return { ...this.defaultSettings };
   }
@@ -35,7 +32,7 @@ export class StorageManager<T extends BaseSettings> {
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(updatedSettings));
     } catch (error) {
-      console.log('Failed to save settings:', error);
+      console.log("Failed to save settings:", error);
     }
 
     return updatedSettings;
@@ -48,7 +45,7 @@ export class StorageManager<T extends BaseSettings> {
     try {
       localStorage.removeItem(this.storageKey);
     } catch (error) {
-      console.log('Failed to reset settings:', error);
+      console.log("Failed to reset settings:", error);
     }
     return { ...this.defaultSettings };
   }

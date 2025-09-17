@@ -1,36 +1,63 @@
 import { ButtonProps } from '../types';
 import { useTheme } from '../hooks/useTheme';
+import { styled } from '../utils/goober-setup';
+
+const StyledButton = styled('button')`
+  /* Base styles */
+  border-radius: 6px;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: var(--cursor);
+  opacity: var(--opacity);
+
+  /* Size variants */
+  padding: var(--padding);
+  font-size: var(--font-size);
+
+  /* Color variants */
+  background: var(--bg);
+  color: var(--color);
+  border: var(--border);
+
+  /* Hover effects */
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+`;
 
 const buttonVariants = {
   primary: {
-    background: '#1da1f2',
-    color: 'white',
-    border: 'none',
+    '--bg': '#1da1f2',
+    '--color': 'white',
+    '--border': 'none',
   },
   secondary: (theme: any) => ({
-    background: theme.buttonBackground,
-    color: theme.buttonText,
-    border: `1px solid ${theme.buttonBorder}`,
+    '--bg': theme.buttonBackground,
+    '--color': theme.buttonText,
+    '--border': `1px solid ${theme.buttonBorder}`,
   }),
   danger: {
-    background: '#dc3545',
-    color: 'white',
-    border: 'none',
+    '--bg': '#dc3545',
+    '--color': 'white',
+    '--border': 'none',
   },
 };
 
 const buttonSizes = {
   small: {
-    padding: '6px 12px',
-    fontSize: '12px',
+    '--padding': '6px 12px',
+    '--font-size': '12px',
   },
   medium: {
-    padding: '8px 16px',
-    fontSize: '14px',
+    '--padding': '8px 16px',
+    '--font-size': '14px',
   },
   large: {
-    padding: '12px 24px',
-    fontSize: '16px',
+    '--padding': '12px 24px',
+    '--font-size': '16px',
   },
 };
 
@@ -52,35 +79,19 @@ export function Button({
   const buttonStyle = {
     ...variantStyles,
     ...buttonSizes[size],
-    borderRadius: '6px',
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    opacity: disabled ? 0.6 : 1,
-    fontWeight: '500',
-    outline: 'none',
-    transition: 'all 0.2s ease',
+    '--cursor': disabled ? 'not-allowed' : 'pointer',
+    '--opacity': disabled ? '0.6' : '1',
     ...style,
   };
 
   return (
-    <button
+    <StyledButton
       className={className}
       style={buttonStyle}
       onClick={onClick}
       disabled={disabled}
-      onMouseEnter={(e) => {
-        if (!disabled) {
-          e.currentTarget.style.transform = 'translateY(-1px)';
-          e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!disabled) {
-          e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.boxShadow = 'none';
-        }
-      }}
     >
       {children}
-    </button>
+    </StyledButton>
   );
 }
