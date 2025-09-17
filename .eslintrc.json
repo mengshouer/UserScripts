@@ -1,0 +1,63 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "greasemonkey": true
+  },
+  "extends": ["eslint:recommended"],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "plugins": ["@typescript-eslint"],
+  "rules": {
+    "prefer-const": "error",
+    "no-var": "error",
+    "eqeqeq": "error",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
+    ],
+    "no-unused-vars": "off"
+  },
+  "globals": {
+    "NodeListOf": "readonly"
+  },
+  "overrides": [
+    {
+      "files": ["vite.config.ts", "build.js"],
+      "env": {
+        "node": true,
+        "browser": false,
+        "greasemonkey": false
+      },
+      "globals": {
+        "process": "readonly",
+        "require": "readonly",
+        "__dirname": "readonly",
+        "__filename": "readonly"
+      }
+    },
+    {
+      "files": ["*.js"],
+      "parser": "espree",
+      "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "script"
+      },
+      "env": {
+        "browser": true,
+        "es2021": true,
+        "node": true
+      },
+      "rules": {
+        "@typescript-eslint/no-unused-vars": "off",
+        "no-unused-vars": [
+          "error",
+          { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
+        ]
+      }
+    }
+  ]
+}
