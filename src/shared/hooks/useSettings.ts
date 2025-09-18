@@ -27,12 +27,18 @@ export function createSettingsHook<T extends BaseSettings>(
     updateSettings(newSettings: Partial<T>) {
       const updated = storageManager.saveSettings(newSettings);
       settingsSignal.value = updated;
+
+      // 触发自定义事件通知设置已变更
+      window.dispatchEvent(new CustomEvent('x-downloader-settings-changed'));
     },
 
     // 重置设置
     resetSettings() {
       const reset = storageManager.resetSettings();
       settingsSignal.value = reset;
+
+      // 触发自定义事件通知设置已变更
+      window.dispatchEvent(new CustomEvent('x-downloader-settings-changed'));
       return reset;
     },
 

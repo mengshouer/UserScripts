@@ -89,19 +89,6 @@ export function Modal({
     return () => document.removeEventListener("keydown", handleEsc);
   }, [isOpen, onClose]);
 
-  // 阻止背景滚动
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
-
   if (!isOpen) return null;
 
   // 使用 CSS 变量传递主题值

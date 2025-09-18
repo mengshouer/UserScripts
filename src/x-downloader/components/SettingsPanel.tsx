@@ -1,4 +1,3 @@
-import { useState } from "preact/hooks";
 import { Modal, Button, Input, Checkbox, useTheme, styled } from "../../shared";
 import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
 import { StyleEditor } from "./StyleEditor";
@@ -41,58 +40,12 @@ const ButtonGroup = styled("div")`
   margin-top: 24px;
 `;
 
-// 在组件外部创建设置管理器实例
-const settingsManager = useDownloaderSettings();
-
 export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const { theme } = useTheme();
-
-  const [fileName, setFileName] = useState(settingsManager.settings.fileName);
-  const [showDownloadButton, setShowDownloadButton] = useState(
-    settingsManager.settings.showDownloadButton
-  );
-  // 视频设置状态
-  const [videoFileName, setVideoFileName] = useState(
-    settingsManager.settings.videoFileName
-  );
-  const [showVideoDownloadButton, setShowVideoDownloadButton] = useState(
-    settingsManager.settings.showVideoDownloadButton
-  );
-  // 按钮样式设置状态
-  const [imageButtonStyle, setImageButtonStyle] = useState(
-    settingsManager.settings.imageButtonStyle
-  );
-  const [videoButtonStyle, setVideoButtonStyle] = useState(
-    settingsManager.settings.videoButtonStyle
-  );
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">(
-    "idle"
-  );
-
-  const handleSave = () => {
-    setSaveStatus("saving");
-
-    settingsManager.updateSettings({
-      fileName,
-      showDownloadButton,
-      videoFileName,
-      showVideoDownloadButton,
-      imageButtonStyle,
-      videoButtonStyle,
-    });
-
-    setSaveStatus("saved");
-    setTimeout(() => setSaveStatus("idle"), 2000);
-  };
+  const settingsManager = useDownloaderSettings();
 
   const handleReset = () => {
-    const defaultSettings = settingsManager.resetSettings();
-    setFileName(defaultSettings.fileName);
-    setShowDownloadButton(defaultSettings.showDownloadButton);
-    setVideoFileName(defaultSettings.videoFileName);
-    setShowVideoDownloadButton(defaultSettings.showVideoDownloadButton);
-    setImageButtonStyle(defaultSettings.imageButtonStyle);
-    setVideoButtonStyle(defaultSettings.videoButtonStyle);
+    settingsManager.resetSettings();
   };
 
   // 使用 CSS 变量传递主题值
@@ -111,8 +64,8 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
         <FieldContainer>
           <Label>图片文件名格式</Label>
           <Input
-            value={fileName}
-            onChange={setFileName}
+            value={settingsManager.settings.fileName}
+            onChange={(value) => settingsManager.setSetting("fileName", value)}
             placeholder="<%Userid> <%Tid>_p<%PicNo>"
           />
           <HelpText>
@@ -122,8 +75,10 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
         <FieldContainer>
           <Checkbox
-            checked={showDownloadButton}
-            onChange={setShowDownloadButton}
+            checked={settingsManager.settings.showDownloadButton}
+            onChange={(checked) =>
+              settingsManager.setSetting("showDownloadButton", checked)
+            }
           >
             显示图片下载按钮
           </Checkbox>
@@ -132,8 +87,10 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
         <FieldContainer>
           <Label>图片下载按钮 CSS 样式属性</Label>
           <StyleEditor
-            value={imageButtonStyle}
-            onChange={setImageButtonStyle}
+            value={settingsManager.settings.imageButtonStyle}
+            onChange={(value) =>
+              settingsManager.setSetting("imageButtonStyle", value)
+            }
             placeholder='{\n  "bottom": "8px",\n  "left": "8px"\n}'
           />
         </FieldContainer>
@@ -144,8 +101,10 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
         <FieldContainer>
           <Label>视频文件名格式</Label>
           <Input
-            value={videoFileName}
-            onChange={setVideoFileName}
+            value={settingsManager.settings.videoFileName}
+            onChange={(value) =>
+              settingsManager.setSetting("videoFileName", value)
+            }
             placeholder="<%Userid> <%Tid>_video_<%Time>"
           />
           <HelpText>
@@ -155,8 +114,10 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
         <FieldContainer>
           <Checkbox
-            checked={showVideoDownloadButton}
-            onChange={setShowVideoDownloadButton}
+            checked={settingsManager.settings.showVideoDownloadButton}
+            onChange={(checked) =>
+              settingsManager.setSetting("showVideoDownloadButton", checked)
+            }
           >
             显示视频下载按钮
           </Checkbox>
@@ -165,24 +126,18 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
         <FieldContainer>
           <Label>视频下载按钮 CSS 样式属性</Label>
           <StyleEditor
-            value={videoButtonStyle}
-            onChange={setVideoButtonStyle}
+            value={settingsManager.settings.videoButtonStyle}
+            onChange={(value) =>
+              settingsManager.setSetting("videoButtonStyle", value)
+            }
             placeholder='{\n  "bottom": "50px",\n  "right": "8px"\n}'
           />
         </FieldContainer>
 
         {/* 按钮组 */}
         <ButtonGroup>
-          <Button
-            variant="primary"
-            onClick={handleSave}
-            disabled={saveStatus === "saving"}
-            style={{ flex: 1 }}
-          >
-            {saveStatus === "saved" ? "已保存" : "保存设置"}
-          </Button>
           <Button variant="secondary" onClick={handleReset}>
-            重置
+            重置为默认设置
           </Button>
         </ButtonGroup>
       </div>

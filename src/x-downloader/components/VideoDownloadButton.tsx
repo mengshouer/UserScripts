@@ -8,13 +8,16 @@ interface VideoDownloadButtonProps {
   tweetContainer: HTMLElement;
 }
 
-// 在组件外部创建设置管理器实例
-const settingsManager = useDownloaderSettings();
-
 export function VideoDownloadButton({
   tweetContainer,
 }: VideoDownloadButtonProps) {
+  const settingsManager = useDownloaderSettings();
   const [isDownloading, setIsDownloading] = useState(false);
+
+  // 如果设置禁用了显示按钮，返回 null
+  if (!settingsManager.settings.showVideoDownloadButton) {
+    return null;
+  }
 
   const handleDownload = async () => {
     if (isDownloading) return;

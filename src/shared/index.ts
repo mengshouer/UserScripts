@@ -2,15 +2,25 @@
 export type * from "./types";
 
 // 工具函数
-export * from "./utils/theme";
-export * from "./utils/storage";
-export * from "./utils/dom";
-export * from "./utils/download";
-export * from "./utils/goober-setup";
+export { getThemeConfig } from "./utils/theme";
+export { StorageManager } from "./utils/storage";
+export { preventEventPropagation } from "./utils/dom";
+export {
+  downloadFile,
+  generateFileName,
+  extractUrlInfo,
+  extractFileInfo,
+} from "./utils/download";
+export {
+  styled,
+  keyframes,
+  createThemeProps,
+  type Theme,
+} from "./utils/goober-setup";
 
 // Hooks
-export * from "./hooks/useSettings";
-export * from "./hooks/useTheme";
+export { createSettingsHook } from "./hooks/useSettings";
+export { useTheme } from "./hooks/useTheme";
 
 // 组件
 export { Button } from "./components/Button";

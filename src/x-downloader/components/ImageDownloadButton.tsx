@@ -25,10 +25,14 @@ function findFirstAnchor(node: HTMLElement): HTMLAnchorElement | null {
   return null;
 }
 
-// 在组件外部创建设置管理器实例
-const settingsManager = useDownloaderSettings();
-
 export function ImageDownloadButton({ targetImage }: ImageDownloadButtonProps) {
+  const settingsManager = useDownloaderSettings();
+
+  // 如果设置禁用了显示按钮，返回 null
+  if (!settingsManager.settings.showDownloadButton) {
+    return null;
+  }
+
   const handleDownload = async () => {
     const { picname, ext } = extractFileInfo(targetImage.src);
     let urlInfo;
