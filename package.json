@@ -6,6 +6,9 @@
     "build": "node build.js",
     "build:all": "node build.js all",
     "build:list": "node build.js list",
+    "dev": "node build.js x-downloader --dev",
+    "dev:watch": "node build.js watch",
+    "watch": "node build.js watch",
     "lint": "eslint src/ --ext .ts,.tsx,.js",
     "lint:fix": "eslint src/ --ext .ts,.tsx,.js --fix",
     "typecheck": "tsc --noEmit"
