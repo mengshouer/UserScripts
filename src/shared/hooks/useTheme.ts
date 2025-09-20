@@ -1,45 +1,55 @@
-import { signal, computed } from "@preact/signals-core";
-import { getThemeConfig } from "../utils/theme";
-import type { Theme } from "../types";
+import { useState, useEffect } from "preact/hooks";
 
-// 主题信号
-const themeSignal = signal<Theme>(getThemeConfig());
+// 主题配置接口
+export interface ThemeConfig {
+  textColor: string;
+  backgroundColor: string;
+  borderColor: string;
+  secondaryTextColor: string;
+  inputBackground: string;
+  inputBorder: string;
+  panelBackground: string;
+}
 
-// 监听系统主题变化
-if (window.matchMedia) {
-  const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-  const handleChange = () => {
-    themeSignal.value = getThemeConfig();
+// 获取主题配置
+function getThemeConfig(isDark: boolean): ThemeConfig {
+  return {
+    textColor: isDark ? "#e1e8ed" : "#333",
+    backgroundColor: isDark ? "#1e1e1e" : "white",
+    borderColor: isDark ? "#38444d" : "#ddd",
+    secondaryTextColor: isDark ? "#8b98a5" : "#666",
+    inputBackground: isDark ? "#253341" : "white",
+    inputBorder: isDark ? "#38444d" : "#ddd",
+    panelBackground: isDark ? "#1e1e1e" : "white",
   };
-
-  // 兼容不同的浏览器 API
-  if (mediaQuery.addEventListener) {
-    mediaQuery.addEventListener("change", handleChange);
-  } else if (mediaQuery.addListener) {
-    mediaQuery.addListener(handleChange);
-  }
 }
 
 /**
  * 主题 Hook
  */
 export function useTheme() {
-  const theme = computed(() => themeSignal.value);
+  const [isDark, setIsDark] = useState(
+    () => window.matchMedia?.("(prefers-color-scheme: dark)").matches || false,
+  );
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
+
+    if (media.addEventListener) {
+      media.addEventListener("change", handler);
+      return () => media.removeEventListener("change", handler);
+    } else if (media.addListener) {
+      media.addListener(handler);
+      return () => media.removeListener?.(handler);
+    }
+
+    // 确保所有代码路径都有返回值
+    return undefined;
+  }, []);
 
   return {
-    // 当前主题配置
-    theme: theme.value,
-
-    // 是否为暗色主题
-    isDark: computed(() => window.matchMedia?.("(prefers-color-scheme: dark)").matches || false)
-      .value,
-
-    // 手动刷新主题（如果需要）
-    refreshTheme() {
-      themeSignal.value = getThemeConfig();
-    },
-
-    // 响应式信号
-    signal: themeSignal,
+    theme: getThemeConfig(isDark),
+    isDark,
   };
 }

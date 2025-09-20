@@ -141,7 +141,7 @@ export function DownloadButton({
       className={className}
       style={buttonStyle}
       onClick={handleClick}
-      onMouseDown={(e) => {
+      onMouseDown={(e: Event) => {
         e.preventDefault();
         return false;
       }}

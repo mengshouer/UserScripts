@@ -61,7 +61,7 @@ export function Input({
       disabled={disabled}
       className={className}
       style={inputStyle}
-      onChange={(e) => onChange?.(e.currentTarget.value)}
+      onChange={(e: Event) => onChange?.((e.currentTarget as HTMLInputElement).value)}
       onBlur={onBlur}
       onFocus={onFocus}
     />

@@ -1,14 +1,15 @@
 import { useState } from "preact/hooks";
-import { downloadFile, generateFileName, extractUrlInfo } from "../../shared";
-import { extractVideoUrl, getTweetIdFromElement } from "../utils/videoUtils";
+import { downloadFile, generateFileName } from "../../shared";
+import { extractVideoUrl, getTweetIdFromElement, getUserIdFromTweetContainer } from "../utils";
 import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
 import { DownloadButton } from "./DownloadButton";
 
 interface VideoDownloadButtonProps {
+  src: string | undefined;
   tweetContainer: HTMLElement;
 }
 
-export function VideoDownloadButton({ tweetContainer }: VideoDownloadButtonProps) {
+export function VideoDownloadButton({ src, tweetContainer }: VideoDownloadButtonProps) {
   const settingsManager = useDownloaderSettings();
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -31,31 +32,19 @@ export function VideoDownloadButton({ tweetContainer }: VideoDownloadButtonProps
       }
 
       // 获取视频下载链接
-      const videoUrl = await extractVideoUrl(tweetId);
+      const videoUrl =
+        src && src.startsWith("https://video.twimg.com") ? src : await extractVideoUrl(tweetId);
       if (!videoUrl) {
         alert("未找到视频下载链接");
         return;
       }
 
-      // 获取 URL 信息以生成更好的文件名
-      let urlInfo;
-      try {
-        // 尝试从 Tweet 容器中的链接获取信息
-        const tweetLink = tweetContainer.querySelector('a[href*="/status/"]') as HTMLAnchorElement;
-        if (tweetLink) {
-          urlInfo = extractUrlInfo(tweetLink.href);
-        } else {
-          // 备用方案：使用当前 URL
-          urlInfo = extractUrlInfo(window.location.href);
-        }
-      } catch (error) {
-        console.warn("无法提取URL信息，使用默认格式:", error);
-        urlInfo = { userid: "unknown", tid: tweetId, picno: "1" };
-      }
+      const username = getUserIdFromTweetContainer(tweetContainer);
+      const urlInfo = { userid: username, tid: tweetId };
 
       // 使用设置中的视频文件名格式
       const filename = generateFileName(settingsManager.settings.videoFileName, {
-        Userid: urlInfo.userid,
+        Userid: urlInfo.userid || "unknown",
         Tid: urlInfo.tid,
         Time: Date.now().toString(),
       });

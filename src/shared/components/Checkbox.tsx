@@ -50,7 +50,7 @@ export function Checkbox({
         checked={checked}
         defaultChecked={defaultChecked}
         disabled={disabled}
-        onChange={(e) => onChange?.(e.currentTarget.checked)}
+        onChange={(e: Event) => onChange?.((e.currentTarget as HTMLInputElement).checked)}
         style={{ "--cursor": disabled ? "not-allowed" : "pointer" }}
       />
       {children}

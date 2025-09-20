@@ -80,28 +80,18 @@ function preserveUserScriptHeader() {
       const entryFile = scriptConfig.source;
       try {
         const code = fs.readFileSync(entryFile, "utf-8");
-        const userScriptMatch = code.match(
-          /(\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==)/
-        );
+        const userScriptMatch = code.match(/(\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==)/);
         if (userScriptMatch) {
           userScriptHeader = userScriptMatch[1] + "\n\n";
         }
       } catch (error: any) {
-        console.warn(
-          "⚠️ Failed to extract UserScript header:",
-          error?.message || String(error)
-        );
+        console.warn("⚠️ Failed to extract UserScript header:", error?.message || String(error));
       }
     },
     transform(code: string, id: string) {
       // 只处理入口文件，移除 UserScript 头部避免编译错误
-      if (
-        id.includes("/src/") &&
-        (id.endsWith("/index.ts") || id.endsWith("/index.tsx"))
-      ) {
-        const userScriptMatch = code.match(
-          /(\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==)/
-        );
+      if (id.includes("/src/") && (id.endsWith("/index.ts") || id.endsWith("/index.tsx"))) {
+        const userScriptMatch = code.match(/(\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==)/);
         if (userScriptMatch) {
           return {
             code: code.replace(userScriptMatch[0], ""),
@@ -147,8 +137,8 @@ export default defineConfig({
         clearScreen: false,
         chokidar: {
           usePolling: true,
-          interval: 500,
-          binaryInterval: 500,
+          interval: 1000,
+          binaryInterval: 1500,
           ignoreInitial: false,
           followSymlinks: true,
           disableGlobbing: false,
@@ -167,10 +157,5 @@ export default defineConfig({
     minifyWhitespace: isProd,
     drop: isProd ? ["console", "debugger"] : [],
     pure: ["console.log", "console.info", "console.debug"],
-  },
-  // 优化依赖预构建
-  optimizeDeps: {
-    include: ["preact", "preact/hooks", "@preact/signals-core", "goober"],
-    exclude: [],
   },
 });

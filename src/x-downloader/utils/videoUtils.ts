@@ -2,6 +2,71 @@
  * 视频相关工具函数
  */
 
+const GRAPHQL_TWEET_DETAIL_ID = "_8aYOgEDz35BrBcBal1-_w";
+const GRAPHQL_ENDPOINT = `https://x.com/i/api/graphql/${GRAPHQL_TWEET_DETAIL_ID}/TweetDetail`;
+const GRAPHQL_AUTH_TOKEN =
+  "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA";
+
+const TWEET_FEATURE_FLAGS = {
+  rweb_video_screen_enabled: false,
+  profile_label_improvements_pcf_label_in_post_enabled: true,
+  rweb_tipjar_consumption_enabled: true,
+  verified_phone_label_enabled: false,
+  creator_subscriptions_tweet_preview_api_enabled: true,
+  responsive_web_graphql_timeline_navigation_enabled: true,
+  responsive_web_graphql_skip_user_profile_image_extensions_enabled: false,
+  premium_content_api_read_enabled: false,
+  communities_web_enable_tweet_community_results_fetch: true,
+  c9s_tweet_anatomy_moderator_badge_enabled: true,
+  responsive_web_grok_analyze_button_fetch_trends_enabled: false,
+  responsive_web_grok_analyze_post_followups_enabled: true,
+  responsive_web_jetfuel_frame: false,
+  responsive_web_grok_share_attachment_enabled: true,
+  articles_preview_enabled: true,
+  responsive_web_edit_tweet_api_enabled: true,
+  graphql_is_translatable_rweb_tweet_is_translatable_enabled: true,
+  view_counts_everywhere_api_enabled: true,
+  longform_notetweets_consumption_enabled: true,
+  responsive_web_twitter_article_tweet_consumption_enabled: true,
+  tweet_awards_web_tipping_enabled: false,
+  responsive_web_grok_show_grok_translated_post: false,
+  responsive_web_grok_analysis_button_from_backend: false,
+  creator_subscriptions_quote_tweet_preview_enabled: false,
+  freedom_of_speech_not_reach_fetch_enabled: true,
+  standardized_nudges_misinfo: true,
+  tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled: true,
+  longform_notetweets_rich_text_read_enabled: true,
+  longform_notetweets_inline_media_enabled: true,
+  responsive_web_grok_image_annotation_enabled: true,
+  responsive_web_enhance_cards_enabled: false,
+} as const;
+
+const TWEET_FIELD_TOGGLES = {
+  withArticlePlainText: false,
+  withArticleRichContentState: true,
+  withDisallowedReplyControls: false,
+  withGrokAnalyze: false,
+} as const;
+
+const FEATURES_PARAM = encodeURIComponent(JSON.stringify(TWEET_FEATURE_FLAGS));
+const FIELD_TOGGLES_PARAM = encodeURIComponent(JSON.stringify(TWEET_FIELD_TOGGLES));
+const BASE_QUERY_SUFFIX = `features=${FEATURES_PARAM}&fieldToggles=${FIELD_TOGGLES_PARAM}`;
+const BASE_VARIABLES_SUFFIX =
+  '","rankingMode":"Relevance","includePromotedContent":false,"withCommunity":false,"withQuickPromoteEligibilityTweetFields":false,"withBirdwatchNotes":false,"withVoice":false}';
+
+const GRAPHQL_BASE_HEADERS: [string, string][] = [
+  ["Authorization", GRAPHQL_AUTH_TOKEN],
+  ["x-twitter-active-user", "yes"],
+  ["Content-Type", "application/json"],
+];
+
+let cachedCsrfToken: string | undefined;
+
+const buildTweetDetailUrl = (tweetId: string) => {
+  const variables = encodeURIComponent(`{"focalTweetId":"${tweetId}${BASE_VARIABLES_SUFFIX}`);
+  return `${GRAPHQL_ENDPOINT}?${BASE_QUERY_SUFFIX}&variables=${variables}`;
+};
+
 /**
  * 从 Twitter API 数据中解析最佳视频URL
  */
@@ -55,11 +120,7 @@ function extractMediaFromTweetData(tweetData: any): any[] {
         content.entryType === "TimelineTimelineItem" &&
         content.itemContent &&
         content.itemContent.itemType === "TimelineTweet" &&
-        content.itemContent.tweet_results &&
-        content.itemContent.tweet_results.result &&
-        content.itemContent.tweet_results.result.legacy &&
-        content.itemContent.tweet_results.result.legacy.extended_entities &&
-        content.itemContent.tweet_results.result.legacy.extended_entities.media
+        content.itemContent.tweet_results?.result?.legacy?.extended_entities?.media
       ) {
         return content.itemContent.tweet_results.result.legacy.extended_entities.media;
       }
@@ -76,18 +137,26 @@ function extractMediaFromTweetData(tweetData: any): any[] {
  * 从页面获取 CSRF token
  */
 function getCSRFToken(): string | undefined {
-  // 尝试从 meta 标签获取 CSRF token
-  const metaTag = document.querySelector('meta[name="csrf-token"]');
-  if (metaTag) {
-    return metaTag.getAttribute("content") || undefined;
+  if (cachedCsrfToken) {
+    return cachedCsrfToken;
   }
 
-  // 尝试从 cookies 获取 CSRF token
+  const metaTag = document.querySelector('meta[name="csrf-token"]');
+  if (metaTag) {
+    const token = metaTag.getAttribute("content") || undefined;
+    if (token) {
+      cachedCsrfToken = token;
+      return token;
+    }
+  }
+
   const cookies = document.cookie.split(";");
   for (const cookie of cookies) {
     const [name, value] = cookie.trim().split("=");
     if (name === "ct0" && value) {
-      return decodeURIComponent(value);
+      const token = decodeURIComponent(value);
+      cachedCsrfToken = token;
+      return token;
     }
   }
 
@@ -98,78 +167,11 @@ function getCSRFToken(): string | undefined {
  * 发起 GraphQL 请求获取 tweet 数据
  */
 async function fetchTweetData(tweetId: string, csrfToken: string): Promise<any> {
-  const graphqlId = "_8aYOgEDz35BrBcBal1-_w"; // TweetDetail query ID
-  const url = `https://x.com/i/api/graphql/${graphqlId}/TweetDetail`;
+  const headers = new Headers(GRAPHQL_BASE_HEADERS);
+  headers.set("x-csrf-token", csrfToken);
+  headers.set("User-Agent", navigator.userAgent);
 
-  const variables = {
-    focalTweetId: tweetId,
-    rankingMode: "Relevance",
-    includePromotedContent: false,
-    withCommunity: false,
-    withQuickPromoteEligibilityTweetFields: false,
-    withBirdwatchNotes: false,
-    withVoice: false,
-  };
-
-  const features = {
-    rweb_video_screen_enabled: false,
-    profile_label_improvements_pcf_label_in_post_enabled: true,
-    rweb_tipjar_consumption_enabled: true,
-    verified_phone_label_enabled: false,
-    creator_subscriptions_tweet_preview_api_enabled: true,
-    responsive_web_graphql_timeline_navigation_enabled: true,
-    responsive_web_graphql_skip_user_profile_image_extensions_enabled: false,
-    premium_content_api_read_enabled: false,
-    communities_web_enable_tweet_community_results_fetch: true,
-    c9s_tweet_anatomy_moderator_badge_enabled: true,
-    responsive_web_grok_analyze_button_fetch_trends_enabled: false,
-    responsive_web_grok_analyze_post_followups_enabled: true,
-    responsive_web_jetfuel_frame: false,
-    responsive_web_grok_share_attachment_enabled: true,
-    articles_preview_enabled: true,
-    responsive_web_edit_tweet_api_enabled: true,
-    graphql_is_translatable_rweb_tweet_is_translatable_enabled: true,
-    view_counts_everywhere_api_enabled: true,
-    longform_notetweets_consumption_enabled: true,
-    responsive_web_twitter_article_tweet_consumption_enabled: true,
-    tweet_awards_web_tipping_enabled: false,
-    responsive_web_grok_show_grok_translated_post: false,
-    responsive_web_grok_analysis_button_from_backend: false,
-    creator_subscriptions_quote_tweet_preview_enabled: false,
-    freedom_of_speech_not_reach_fetch_enabled: true,
-    standardized_nudges_misinfo: true,
-    tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled: true,
-    longform_notetweets_rich_text_read_enabled: true,
-    longform_notetweets_inline_media_enabled: true,
-    responsive_web_grok_image_annotation_enabled: true,
-    responsive_web_enhance_cards_enabled: false,
-  };
-
-  const fieldToggles = {
-    withArticleRichContentState: true,
-    withArticlePlainText: false,
-    withGrokAnalyze: false,
-    withDisallowedReplyControls: false,
-  };
-
-  const params = new URLSearchParams();
-  params.append("variables", JSON.stringify(variables));
-  params.append("features", JSON.stringify(features));
-  params.append("fieldToggles", JSON.stringify(fieldToggles));
-
-  const fullUrl = `${url}?${params.toString()}`;
-
-  const headers = new Headers();
-  headers.append(
-    "Authorization",
-    "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA",
-  );
-  headers.append("x-csrf-token", csrfToken);
-  headers.append("x-twitter-active-user", "yes");
-  headers.append("Content-Type", "application/json");
-  headers.append("User-Agent", navigator.userAgent);
-
-  const response = await fetch(fullUrl, {
+  const response = await fetch(buildTweetDetailUrl(tweetId), {
     method: "GET",
     headers: headers,
     credentials: "include",
@@ -180,39 +182,6 @@ async function fetchTweetData(tweetId: string, csrfToken: string): Promise<any> 
   }
 
   return await response.json();
-}
-
-/**
- * 从 DOM 元素中提取 Tweet ID
- */
-export function getTweetIdFromElement(element: HTMLElement): string | undefined {
-  // 方法1: 从最近的 article 元素的 data-testid 属性中获取
-  let current: HTMLElement | null = element;
-  while (current && current.tagName !== "BODY") {
-    if (current.tagName === "ARTICLE" && current.hasAttribute("data-testid")) {
-      const testId = current.getAttribute("data-testid");
-      if (testId === "tweet") {
-        // 查找链接中的 tweet ID
-        const links = current.querySelectorAll('a[href*="/status/"]');
-        for (const link of Array.from(links)) {
-          const href = (link as HTMLAnchorElement).href;
-          const match = href.match(/\/status\/(\d+)/);
-          if (match) {
-            return match[1];
-          }
-        }
-      }
-    }
-    current = current.parentElement;
-  }
-
-  // 方法2: 从当前页面 URL 中获取
-  const urlMatch = window.location.href.match(/\/status\/(\d+)/);
-  if (urlMatch) {
-    return urlMatch[1];
-  }
-
-  return undefined;
 }
 
 /**
@@ -237,6 +206,7 @@ export async function extractVideoUrl(tweetId: string): Promise<string | undefin
 
     return videoUrl;
   } catch (error) {
+    cachedCsrfToken = undefined;
     console.error("Error extracting video URL:", error);
     throw error;
   }

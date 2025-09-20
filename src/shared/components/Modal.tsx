@@ -29,42 +29,6 @@ const ModalContainer = styled("div")`
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 `;
 
-const Header = styled("div")`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--header-margin);
-`;
-
-const Title = styled("h2")`
-  margin: 0;
-  color: var(--modal-text);
-  font-size: 20px;
-  font-weight: 600;
-`;
-
-const CloseButton = styled("button")`
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: var(--secondary-text);
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: var(--border-color);
-  }
-`;
-
-const Content = styled("div")``;
-
 export function Modal({
   isOpen,
   onClose,
@@ -95,10 +59,43 @@ export function Modal({
   const cssVariables = {
     "--modal-bg": theme.panelBackground,
     "--modal-text": theme.textColor,
-    "--secondary-text": theme.secondaryTextColor,
-    "--border-color": theme.borderColor,
-    "--header-margin": title ? "20px" : "0",
     ...style,
+  };
+
+  const headerStyle = {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: title ? "20px" : "0",
+  };
+
+  const titleStyle = {
+    margin: 0,
+    color: theme.textColor,
+    fontSize: "20px",
+    fontWeight: 600,
+  };
+
+  const closeButtonStyle = {
+    background: "none",
+    border: "none",
+    fontSize: "24px",
+    cursor: "pointer",
+    color: theme.secondaryTextColor,
+    padding: 0,
+    width: "30px",
+    height: "30px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: "4px",
+    transition: "background-color 0.2s ease",
+  };
+
+  // 悬停效果处理器
+  const handleCloseHover = (e: Event, isHover: boolean) => {
+    const target = e.target as HTMLElement;
+    target.style.backgroundColor = isHover ? theme.borderColor : "transparent";
   };
 
   return (
@@ -106,13 +103,20 @@ export function Modal({
       <ModalContainer
         className={className}
         style={cssVariables}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e: Event) => e.stopPropagation()}
       >
-        <Header>
-          {title && <Title>{title}</Title>}
-          <CloseButton onClick={onClose}>×</CloseButton>
-        </Header>
-        <Content>{children}</Content>
+        <div style={headerStyle}>
+          {title && <h2 style={titleStyle}>{title}</h2>}
+          <button
+            style={closeButtonStyle}
+            onClick={onClose}
+            onMouseEnter={(e: Event) => handleCloseHover(e, true)}
+            onMouseLeave={(e: Event) => handleCloseHover(e, false)}
+          >
+            ×
+          </button>
+        </div>
+        <div>{children}</div>
       </ModalContainer>
     </Overlay>
   );

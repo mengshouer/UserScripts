@@ -1,5 +1,5 @@
-import type { ButtonProps, Theme } from "../types";
-import { useTheme } from "../hooks/useTheme";
+import type { ButtonProps } from "../types";
+import { useTheme, type ThemeConfig } from "../hooks/useTheme";
 import { styled } from "../utils/goober-setup";
 
 const StyledButton = styled("button")`
@@ -32,17 +32,17 @@ type ButtonVariantStyle = Record<string, string>;
 
 const buttonVariants: Record<
   Exclude<ButtonProps["variant"], undefined>,
-  ButtonVariantStyle | ((theme: Theme) => ButtonVariantStyle)
+  ButtonVariantStyle | ((theme: ThemeConfig) => ButtonVariantStyle)
 > = {
   primary: {
     "--bg": "#1da1f2",
     "--color": "white",
     "--border": "none",
   },
-  secondary: (theme: Theme): ButtonVariantStyle => ({
-    "--bg": theme.buttonBackground,
-    "--color": theme.buttonText,
-    "--border": `1px solid ${theme.buttonBorder}`,
+  secondary: (theme: ThemeConfig): ButtonVariantStyle => ({
+    "--bg": theme.inputBackground,
+    "--color": theme.textColor,
+    "--border": `1px solid ${theme.borderColor}`,
   }),
   danger: {
     "--bg": "#dc3545",
