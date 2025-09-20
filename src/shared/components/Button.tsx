@@ -1,4 +1,4 @@
-import { ButtonProps } from "../types";
+import type { ButtonProps, Theme } from "../types";
 import { useTheme } from "../hooks/useTheme";
 import { styled } from "../utils/goober-setup";
 
@@ -28,13 +28,18 @@ const StyledButton = styled("button")`
   }
 `;
 
-const buttonVariants = {
+type ButtonVariantStyle = Record<string, string>;
+
+const buttonVariants: Record<
+  Exclude<ButtonProps["variant"], undefined>,
+  ButtonVariantStyle | ((theme: Theme) => ButtonVariantStyle)
+> = {
   primary: {
     "--bg": "#1da1f2",
     "--color": "white",
     "--border": "none",
   },
-  secondary: (theme: any) => ({
+  secondary: (theme: Theme): ButtonVariantStyle => ({
     "--bg": theme.buttonBackground,
     "--color": theme.buttonText,
     "--border": `1px solid ${theme.buttonBorder}`,
@@ -46,7 +51,7 @@ const buttonVariants = {
   },
 };
 
-const buttonSizes = {
+const buttonSizes: Record<Exclude<ButtonProps["size"], undefined>, ButtonVariantStyle> = {
   small: {
     "--padding": "6px 12px",
     "--font-size": "12px",
@@ -69,13 +74,17 @@ export function Button({
   size = "medium",
   className = "",
   style = {},
+  type = "button",
 }: ButtonProps) {
   const { theme } = useTheme();
 
-  const variantStyles =
-    variant === "secondary" ? buttonVariants.secondary(theme) : buttonVariants[variant];
+  // 缓存计算结果以避免重复计算
+  const variantStyles = (() => {
+    const variantConfig = buttonVariants[variant];
+    return typeof variantConfig === "function" ? variantConfig(theme) : variantConfig;
+  })();
 
-  const buttonStyle = {
+  const buttonStyle: Record<string, string | number> = {
     ...variantStyles,
     ...buttonSizes[size],
     "--cursor": disabled ? "not-allowed" : "pointer",
@@ -84,7 +93,13 @@ export function Button({
   };
 
   return (
-    <StyledButton className={className} style={buttonStyle} onClick={onClick} disabled={disabled}>
+    <StyledButton
+      className={className}
+      style={buttonStyle}
+      onClick={onClick}
+      disabled={disabled}
+      type={type}
+    >
       {children}
     </StyledButton>
   );

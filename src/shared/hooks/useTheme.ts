@@ -1,9 +1,9 @@
 import { signal, computed } from "@preact/signals-core";
 import { getThemeConfig } from "../utils/theme";
-import type { ThemeConfig } from "../types";
+import type { Theme } from "../types";
 
 // 主题信号
-const themeSignal = signal<ThemeConfig>(getThemeConfig());
+const themeSignal = signal<Theme>(getThemeConfig());
 
 // 监听系统主题变化
 if (window.matchMedia) {

@@ -2,7 +2,7 @@
 // @name         X(Twitter) Downloader
 // @name:zh-CN   X（Twitter）下载器
 // @author       mengshouer
-// @version      0.3
+// @version      0.4
 // @description  Add a download button to the media.
 // @include      *://twitter.com/*
 // @include      *://*.twitter.com/*
@@ -24,12 +24,20 @@ const getSettings = () => {
 };
 
 // 通用的按钮显示隐藏逻辑
-const createButtonVisibilityHandlers = (buttonContainer: HTMLElement, settingKey: string) => {
+const createButtonVisibilityHandlers = (
+  buttonContainer: HTMLElement,
+  settingKey: string,
+  rerenderCallback: () => void,
+) => {
   const showButton = () => {
     const settings = getSettings();
     const shouldShow = settings[settingKey] !== false;
     if (shouldShow) {
+      // 重新渲染以应用最新样式
+      rerenderCallback();
       buttonContainer.style.display = "block";
+    } else {
+      buttonContainer.style.display = "none";
     }
   };
 
@@ -61,43 +69,26 @@ function setupImageInteraction(img: HTMLImageElement): void {
   // 创建下载按钮容器（初始隐藏）
   const buttonContainer = document.createElement("div");
   buttonContainer.style.display = "none";
-  buttonContainer.setAttribute("data-image-download-button", "true");
 
   // 将按钮容器添加到图片容器中
   imageContainer.appendChild(buttonContainer);
 
-  // 渲染图片下载按钮
-  render(<ImageDownloadButton targetImage={img} />, buttonContainer);
-
-  // 存储按钮容器引用
-  imageButtonContainers.set(img, buttonContainer);
+  // 初始渲染图片下载按钮
+  const renderImageButton = () => {
+    render(<ImageDownloadButton targetImage={img} />, buttonContainer);
+  };
+  renderImageButton();
 
   // 按钮显示隐藏逻辑
   const { showButton, hideButton } = createButtonVisibilityHandlers(
     buttonContainer,
     "showDownloadButton",
+    renderImageButton,
   );
 
   // 鼠标进入图片容器时显示按钮
   imageContainer.addEventListener("mouseenter", showButton);
   imageContainer.addEventListener("mouseleave", hideButton);
-
-  // 清理函数
-  const cleanup = () => {
-    // 移除事件监听器
-    imageContainer.removeEventListener("mouseenter", showButton);
-    imageContainer.removeEventListener("mouseleave", hideButton);
-
-    // 移除按钮容器
-    buttonContainer.remove();
-
-    // 清理引用
-    imageButtonContainers.delete(img);
-    imageListeners.delete(img);
-  };
-
-  // 存储清理函数
-  imageListeners.set(img, cleanup);
 
   // 标记为已处理
   img.setAttribute("data-download-processed", "true");
@@ -112,12 +103,6 @@ function addDownloadButtonToImage(images: NodeListOf<Element>): void {
     setupImageInteraction(img);
   });
 }
-
-// 存储监听器的 Map
-const videoListeners = new Map<HTMLVideoElement, () => void>();
-const videoButtonContainers = new Map<HTMLVideoElement, HTMLElement>();
-const imageListeners = new Map<HTMLImageElement, () => void>();
-const imageButtonContainers = new Map<HTMLImageElement, HTMLElement>();
 
 /**
  * 为单个视频设置交互监听
@@ -153,45 +138,26 @@ function setupVideoInteraction(video: HTMLVideoElement): void {
   // 创建下载按钮容器（初始隐藏）
   const buttonContainer = document.createElement("div");
   buttonContainer.style.display = "none";
-  buttonContainer.setAttribute("data-video-download-button", "true");
 
   // 将按钮容器添加到视频容器中
   videoContainer.appendChild(buttonContainer);
 
-  // 渲染视频下载按钮
-  render(<VideoDownloadButton tweetContainer={tweetContainer} />, buttonContainer);
-
-  // 存储按钮容器引用
-  videoButtonContainers.set(video, buttonContainer);
+  // 初始渲染视频下载按钮
+  const renderVideoButton = () => {
+    render(<VideoDownloadButton tweetContainer={tweetContainer} />, buttonContainer);
+  };
+  renderVideoButton();
 
   // 按钮显示隐藏逻辑
   const { showButton, hideButton } = createButtonVisibilityHandlers(
     buttonContainer,
     "showVideoDownloadButton",
+    renderVideoButton,
   );
 
   // 鼠标进入视频容器时显示按钮
   videoContainer.addEventListener("mouseenter", showButton);
   videoContainer.addEventListener("mouseleave", hideButton);
-
-  // 清理函数
-  const cleanup = () => {
-    // 移除事件监听器
-    videoContainer.removeEventListener("mouseenter", showButton);
-    videoContainer.removeEventListener("mouseleave", hideButton);
-    video.removeEventListener("pause", showButton);
-    video.removeEventListener("play", showButton);
-
-    // 移除按钮容器
-    buttonContainer.remove();
-
-    // 清理引用
-    videoButtonContainers.delete(video);
-    videoListeners.delete(video);
-  };
-
-  // 存储清理函数
-  videoListeners.set(video, cleanup);
 
   // 标记为已处理
   video.setAttribute("data-video-download-processed", "true");
@@ -256,64 +222,9 @@ function watchForMedia(): void {
     characterData: false, // 不监听文本变化
   });
 
-  // 监听设置变化 - 立即更新所有已存在按钮的显示状态和样式
-  const updateExistingButtons = () => {
-    const settings = getSettings();
-    const showImageButton = settings.showDownloadButton !== false;
-    const showVideoButton = settings.showVideoDownloadButton !== false;
-
-    // 更新所有图片按钮容器 - 重新渲染以应用新样式
-    imageButtonContainers.forEach((container, img) => {
-      if (!showImageButton) {
-        container.style.display = "none";
-      } else {
-        // 重新渲染图片下载按钮以应用最新的样式设置
-        render(<ImageDownloadButton targetImage={img} />, container);
-        // 重置 display 属性，但仍然保持隐藏状态（等待鼠标悬停）
-        container.style.display = "none";
-      }
-    });
-
-    // 更新所有视频按钮容器 - 重新渲染以应用新样式
-    videoButtonContainers.forEach((container, video) => {
-      if (!showVideoButton) {
-        container.style.display = "none";
-      } else {
-        // 需要找到对应的 tweet 容器来重新渲染视频按钮
-        const tweetContainer = video.closest('[data-testid="tweet"]') as HTMLElement;
-        if (tweetContainer) {
-          // 重新渲染视频下载按钮以应用最新的样式设置
-          render(<VideoDownloadButton tweetContainer={tweetContainer} />, container);
-        }
-        // 重置 display 属性，但仍然保持隐藏状态（等待鼠标悬停）
-        container.style.display = "none";
-      }
-    });
-  };
-
-  // 监听 storage 事件（当其他标签页修改 localStorage 时触发）
-  window.addEventListener("storage", (e) => {
-    if (e.key === "x-downloader-settings") {
-      updateExistingButtons();
-    }
-  });
-
-  // 监听自定义事件（当前页面修改设置时触发）
-  window.addEventListener("x-downloader-settings-changed", updateExistingButtons);
-
   // 清理函数
   const cleanup = () => {
     observer.disconnect();
-
-    // 清理视频监听器
-    videoListeners.forEach((cleanupFunc) => cleanupFunc());
-    videoListeners.clear();
-    videoButtonContainers.clear();
-
-    // 清理图片监听器
-    imageListeners.forEach((cleanupFunc) => cleanupFunc());
-    imageListeners.clear();
-    imageButtonContainers.clear();
   };
 
   // 在页面卸载时清理
