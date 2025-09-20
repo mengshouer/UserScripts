@@ -12,20 +12,16 @@ function getBestVideoUrl(medias: any[]): string | undefined {
 
   // 找到第一个视频媒体 (video 或 animated_gif)
   const videoMedia = medias.find(
-    (media) => media.type === "video" || media.type === "animated_gif"
+    (media) => media.type === "video" || media.type === "animated_gif",
   );
 
-  if (
-    !videoMedia ||
-    !videoMedia.video_info ||
-    !Array.isArray(videoMedia.video_info.variants)
-  ) {
+  if (!videoMedia || !videoMedia.video_info || !Array.isArray(videoMedia.video_info.variants)) {
     return undefined;
   }
 
   // 过滤 MP4 格式的视频变体并找到最高比特率的
   const mp4Variants = videoMedia.video_info.variants.filter(
-    (variant: any) => variant.content_type === "video/mp4" && variant.url
+    (variant: any) => variant.content_type === "video/mp4" && variant.url,
   );
 
   if (mp4Variants.length === 0) {
@@ -45,11 +41,8 @@ function getBestVideoUrl(medias: any[]): string | undefined {
  */
 function extractMediaFromTweetData(tweetData: any): any[] {
   try {
-    const instructions =
-      tweetData.data.threaded_conversation_with_injections_v2.instructions;
-    const timelineAddEntries = instructions.find(
-      (i: any) => i.type === "TimelineAddEntries"
-    );
+    const instructions = tweetData.data.threaded_conversation_with_injections_v2.instructions;
+    const timelineAddEntries = instructions.find((i: any) => i.type === "TimelineAddEntries");
 
     if (!timelineAddEntries || !Array.isArray(timelineAddEntries.entries)) {
       return [];
@@ -68,8 +61,7 @@ function extractMediaFromTweetData(tweetData: any): any[] {
         content.itemContent.tweet_results.result.legacy.extended_entities &&
         content.itemContent.tweet_results.result.legacy.extended_entities.media
       ) {
-        return content.itemContent.tweet_results.result.legacy.extended_entities
-          .media;
+        return content.itemContent.tweet_results.result.legacy.extended_entities.media;
       }
     }
 
@@ -105,10 +97,7 @@ function getCSRFToken(): string | undefined {
 /**
  * 发起 GraphQL 请求获取 tweet 数据
  */
-async function fetchTweetData(
-  tweetId: string,
-  csrfToken: string
-): Promise<any> {
+async function fetchTweetData(tweetId: string, csrfToken: string): Promise<any> {
   const graphqlId = "_8aYOgEDz35BrBcBal1-_w"; // TweetDetail query ID
   const url = `https://x.com/i/api/graphql/${graphqlId}/TweetDetail`;
 
@@ -149,8 +138,7 @@ async function fetchTweetData(
     creator_subscriptions_quote_tweet_preview_enabled: false,
     freedom_of_speech_not_reach_fetch_enabled: true,
     standardized_nudges_misinfo: true,
-    tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled:
-      true,
+    tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled: true,
     longform_notetweets_rich_text_read_enabled: true,
     longform_notetweets_inline_media_enabled: true,
     responsive_web_grok_image_annotation_enabled: true,
@@ -174,7 +162,7 @@ async function fetchTweetData(
   const headers = new Headers();
   headers.append(
     "Authorization",
-    "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA"
+    "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA",
   );
   headers.append("x-csrf-token", csrfToken);
   headers.append("x-twitter-active-user", "yes");
@@ -188,9 +176,7 @@ async function fetchTweetData(
   });
 
   if (!response.ok) {
-    throw new Error(
-      `Failed to fetch tweet data: ${response.status} ${response.statusText}`
-    );
+    throw new Error(`Failed to fetch tweet data: ${response.status} ${response.statusText}`);
   }
 
   return await response.json();
@@ -199,9 +185,7 @@ async function fetchTweetData(
 /**
  * 从 DOM 元素中提取 Tweet ID
  */
-export function getTweetIdFromElement(
-  element: HTMLElement
-): string | undefined {
+export function getTweetIdFromElement(element: HTMLElement): string | undefined {
   // 方法1: 从最近的 article 元素的 data-testid 属性中获取
   let current: HTMLElement | null = element;
   while (current && current.tagName !== "BODY") {
@@ -234,9 +218,7 @@ export function getTweetIdFromElement(
 /**
  * 提取视频下载链接的主函数
  */
-export async function extractVideoUrl(
-  tweetId: string
-): Promise<string | undefined> {
+export async function extractVideoUrl(tweetId: string): Promise<string | undefined> {
   try {
     // 获取 CSRF token
     const csrfToken = getCSRFToken();
@@ -263,9 +245,7 @@ export async function extractVideoUrl(
 /**
  * 查找视频容器
  */
-export function findVideoContainer(
-  videoElement: HTMLVideoElement
-): HTMLElement | null {
+export function findVideoContainer(videoElement: HTMLVideoElement): HTMLElement | null {
   let current: HTMLElement | null = videoElement.parentElement;
 
   // 向上查找视频容器（通常包含 data-testid="videoComponent"）
@@ -285,9 +265,7 @@ export function findVideoContainer(
 /**
  * 查找视频播放器容器（更大的范围）
  */
-export function findVideoPlayerContainer(
-  videoElement: HTMLVideoElement
-): HTMLElement | null {
+export function findVideoPlayerContainer(videoElement: HTMLVideoElement): HTMLElement | null {
   let current: HTMLElement | null = videoElement.parentElement;
 
   // 向上查找包含播放器的容器

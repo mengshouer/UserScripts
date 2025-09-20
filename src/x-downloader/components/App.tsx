@@ -15,14 +15,8 @@ export function App() {
 
   return (
     <>
-      <SettingsButton
-        onClick={handleToggleSettings}
-        isSettingsPanelOpen={isSettingsPanelOpen}
-      />
-      <SettingsPanel
-        isOpen={isSettingsPanelOpen}
-        onClose={handleCloseSettings}
-      />
+      <SettingsButton onClick={handleToggleSettings} isSettingsPanelOpen={isSettingsPanelOpen} />
+      <SettingsPanel isOpen={isSettingsPanelOpen} onClose={handleCloseSettings} />
     </>
   );
 }

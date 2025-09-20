@@ -4,7 +4,10 @@ import type { BaseSettings } from "../types";
  * 通用的本地存储管理器
  */
 export class StorageManager<T extends BaseSettings> {
-  constructor(private storageKey: string, private defaultSettings: T) {}
+  constructor(
+    private storageKey: string,
+    private defaultSettings: T,
+  ) {}
 
   /**
    * 加载设置

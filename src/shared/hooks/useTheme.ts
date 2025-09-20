@@ -31,9 +31,8 @@ export function useTheme() {
     theme: theme.value,
 
     // 是否为暗色主题
-    isDark: computed(
-      () => window.matchMedia?.("(prefers-color-scheme: dark)").matches || false
-    ).value,
+    isDark: computed(() => window.matchMedia?.("(prefers-color-scheme: dark)").matches || false)
+      .value,
 
     // 手动刷新主题（如果需要）
     refreshTheme() {

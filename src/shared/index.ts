@@ -5,18 +5,8 @@ export type * from "./types";
 export { getThemeConfig } from "./utils/theme";
 export { StorageManager } from "./utils/storage";
 export { preventEventPropagation } from "./utils/dom";
-export {
-  downloadFile,
-  generateFileName,
-  extractUrlInfo,
-  extractFileInfo,
-} from "./utils/download";
-export {
-  styled,
-  keyframes,
-  createThemeProps,
-  type Theme,
-} from "./utils/goober-setup";
+export { downloadFile, generateFileName, extractUrlInfo, extractFileInfo } from "./utils/download";
+export { styled, keyframes, createThemeProps, type Theme } from "./utils/goober-setup";
 
 // Hooks
 export { createSettingsHook } from "./hooks/useSettings";

@@ -16,7 +16,7 @@ export async function downloadFile(url: string, fileName: string): Promise<void>
 
     // 创建临时链接进行下载
     const downloadUrl = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = downloadUrl;
     link.download = fileName;
 
@@ -37,21 +37,18 @@ export async function downloadFile(url: string, fileName: string): Promise<void>
  * 从 URL 提取文件信息
  */
 export function extractFileInfo(src: string): { picname: string; ext: string } {
-  const picname = src.split('?')[0]?.split('/').pop() || '';
-  const ext = src.includes('format=png') ? 'png' : 'jpg';
+  const picname = src.split("?")[0]?.split("/").pop() || "";
+  const ext = src.includes("format=png") ? "png" : "jpg";
   return { picname, ext };
 }
 
 /**
  * 生成下载文件名
  */
-export function generateFileName(
-  template: string,
-  variables: Record<string, string>
-): string {
+export function generateFileName(template: string, variables: Record<string, string>): string {
   let result = template;
   for (const [key, value] of Object.entries(variables)) {
-    result = result.replace(new RegExp(`<%${key}>`, 'g'), value || '');
+    result = result.replace(new RegExp(`<%${key}>`, "g"), value || "");
   }
   return result;
 }
@@ -65,10 +62,10 @@ export function extractUrlInfo(url: string): {
   picno: string;
 } {
   const urlRegex = /https:\/\/(twitter|x)\.com\//;
-  const array = url.replace(urlRegex, '').split('/');
+  const array = url.replace(urlRegex, "").split("/");
   return {
-    userid: array[0] || 'unknown',
-    tid: array[2] || 'unknown',
-    picno: array[4] || '1',
+    userid: array[0] || "unknown",
+    tid: array[2] || "unknown",
+    picno: array[4] || "1",
   };
 }

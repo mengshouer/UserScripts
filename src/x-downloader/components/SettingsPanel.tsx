@@ -76,9 +76,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
         <FieldContainer>
           <Checkbox
             checked={settingsManager.settings.showDownloadButton}
-            onChange={(checked) =>
-              settingsManager.setSetting("showDownloadButton", checked)
-            }
+            onChange={(checked) => settingsManager.setSetting("showDownloadButton", checked)}
           >
             显示图片下载按钮
           </Checkbox>
@@ -88,9 +86,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           <Label>图片下载按钮 CSS 样式属性</Label>
           <StyleEditor
             value={settingsManager.settings.imageButtonStyle}
-            onChange={(value) =>
-              settingsManager.setSetting("imageButtonStyle", value)
-            }
+            onChange={(value) => settingsManager.setSetting("imageButtonStyle", value)}
             placeholder='{\n  "bottom": "8px",\n  "left": "8px"\n}'
           />
         </FieldContainer>
@@ -102,22 +98,16 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           <Label>视频文件名格式</Label>
           <Input
             value={settingsManager.settings.videoFileName}
-            onChange={(value) =>
-              settingsManager.setSetting("videoFileName", value)
-            }
+            onChange={(value) => settingsManager.setSetting("videoFileName", value)}
             placeholder="<%Userid> <%Tid>_video_<%Time>"
           />
-          <HelpText>
-            可用变量：&lt;%Userid&gt;、&lt;%Tid&gt;、&lt;%Time&gt;
-          </HelpText>
+          <HelpText>可用变量：&lt;%Userid&gt;、&lt;%Tid&gt;、&lt;%Time&gt;</HelpText>
         </FieldContainer>
 
         <FieldContainer>
           <Checkbox
             checked={settingsManager.settings.showVideoDownloadButton}
-            onChange={(checked) =>
-              settingsManager.setSetting("showVideoDownloadButton", checked)
-            }
+            onChange={(checked) => settingsManager.setSetting("showVideoDownloadButton", checked)}
           >
             显示视频下载按钮
           </Checkbox>
@@ -127,9 +117,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           <Label>视频下载按钮 CSS 样式属性</Label>
           <StyleEditor
             value={settingsManager.settings.videoButtonStyle}
-            onChange={(value) =>
-              settingsManager.setSetting("videoButtonStyle", value)
-            }
+            onChange={(value) => settingsManager.setSetting("videoButtonStyle", value)}
             placeholder='{\n  "bottom": "50px",\n  "right": "8px"\n}'
           />
         </FieldContainer>

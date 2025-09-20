@@ -21,7 +21,9 @@ const StyledButton = styled("button")`
   z-index: 10000;
   color: white;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  transition: left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.2s ease,
+  transition:
+    left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    opacity 0.2s ease,
     transform 0.2s ease;
   opacity: 0.9;
   border: none;
@@ -38,18 +40,14 @@ const SettingsIcon = styled("svg")`
   fill: currentColor;
 `;
 
-export function SettingsButton({
-  onClick,
-  isSettingsPanelOpen,
-}: SettingsButtonProps) {
+export function SettingsButton({ onClick, isSettingsPanelOpen }: SettingsButtonProps) {
   const [isMouseNearLeft, setIsMouseNearLeft] = useState(false);
 
   // 监听鼠标移动，判断是否展示设置按钮
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       // 距离左边缘100px，距离底部 1 / 3 屏幕高度
-      const isNear =
-        e.clientX < 100 && e.clientY > window.innerHeight * (2 / 3);
+      const isNear = e.clientX < 100 && e.clientY > window.innerHeight * (2 / 3);
       setIsMouseNearLeft(isNear);
     };
 
@@ -58,8 +56,7 @@ export function SettingsButton({
   }, []);
 
   const buttonStyle = {
-    "--left-position":
-      isMouseNearLeft || isSettingsPanelOpen ? "10px" : "-40px",
+    "--left-position": isMouseNearLeft || isSettingsPanelOpen ? "10px" : "-40px",
   };
 
   return (

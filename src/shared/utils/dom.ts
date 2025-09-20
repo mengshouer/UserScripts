@@ -19,7 +19,7 @@ export function waitForElement(
   options: {
     interval?: number;
     maxAttempts?: number;
-  } = {}
+  } = {},
 ): () => void {
   const { interval = 300, maxAttempts = 100 } = options;
   let attempts = 0;

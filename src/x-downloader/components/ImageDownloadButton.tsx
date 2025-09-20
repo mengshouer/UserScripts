@@ -1,9 +1,4 @@
-import {
-  downloadFile,
-  extractFileInfo,
-  generateFileName,
-  extractUrlInfo,
-} from "../../shared";
+import { downloadFile, extractFileInfo, generateFileName, extractUrlInfo } from "../../shared";
 import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
 import { DownloadButton } from "./DownloadButton";
 

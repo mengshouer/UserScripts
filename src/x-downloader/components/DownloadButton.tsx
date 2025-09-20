@@ -43,7 +43,9 @@ const StyledButton = styled("button")`
   border: var(--border, 2px solid rgba(255, 255, 255, 0.9));
   cursor: var(--cursor);
   opacity: var(--opacity);
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
   transform: var(--transform);
 
   top: var(--top);

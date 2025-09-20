@@ -69,28 +69,44 @@ console.log(`🚀 Building script: ${scriptToBuild} (${buildMode} mode)`);
 // 自定义插件来处理 UserScript 头部
 function preserveUserScriptHeader() {
   let userScriptHeader = "";
+  const fs = require("fs");
 
   return {
     name: "preserve-userscript-header",
-    load(id: string) {
-      // 处理 src/*/index.ts 和 index.tsx 文件
-      if (
-        id.includes("/src/") &&
-        (id.endsWith("/index.ts") ||
-          id.endsWith("/index.tsx") ||
-          id.endsWith(".source.ts"))
-      ) {
-        const fs = require("fs");
-        const code = fs.readFileSync(id, "utf-8");
+    configResolved() {
+      // 在配置解析阶段预先提取 UserScript 头部，不干扰后续监听
+      if (!scriptConfig) return;
 
-        // 提取 UserScript 头部
+      const entryFile = scriptConfig.source;
+      try {
+        const code = fs.readFileSync(entryFile, "utf-8");
         const userScriptMatch = code.match(
           /(\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==)/
         );
         if (userScriptMatch) {
           userScriptHeader = userScriptMatch[1] + "\n\n";
-          // 移除头部，让 TypeScript 编译器不处理注释
-          return code.replace(userScriptMatch[0], "");
+        }
+      } catch (error: any) {
+        console.warn(
+          "⚠️ Failed to extract UserScript header:",
+          error?.message || String(error)
+        );
+      }
+    },
+    transform(code: string, id: string) {
+      // 只处理入口文件，移除 UserScript 头部避免编译错误
+      if (
+        id.includes("/src/") &&
+        (id.endsWith("/index.ts") || id.endsWith("/index.tsx"))
+      ) {
+        const userScriptMatch = code.match(
+          /(\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==)/
+        );
+        if (userScriptMatch) {
+          return {
+            code: code.replace(userScriptMatch[0], ""),
+            map: null,
+          };
         }
       }
       return null;
@@ -124,6 +140,20 @@ export default defineConfig({
         minifyInternalExports: isProd,
       },
       treeshake: isProd ? { preset: "recommended" } : false,
+      watch: {
+        include: ["src/**/*"],
+        exclude: ["node_modules/**", "dist/**"],
+        buildDelay: 300,
+        clearScreen: false,
+        chokidar: {
+          usePolling: true,
+          interval: 500,
+          binaryInterval: 500,
+          ignoreInitial: false,
+          followSymlinks: true,
+          disableGlobbing: false,
+        },
+      },
     },
     outDir: "dist",
     emptyOutDir: false,

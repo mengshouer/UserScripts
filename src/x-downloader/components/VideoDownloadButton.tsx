@@ -8,9 +8,7 @@ interface VideoDownloadButtonProps {
   tweetContainer: HTMLElement;
 }
 
-export function VideoDownloadButton({
-  tweetContainer,
-}: VideoDownloadButtonProps) {
+export function VideoDownloadButton({ tweetContainer }: VideoDownloadButtonProps) {
   const settingsManager = useDownloaderSettings();
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -43,9 +41,7 @@ export function VideoDownloadButton({
       let urlInfo;
       try {
         // 尝试从 Tweet 容器中的链接获取信息
-        const tweetLink = tweetContainer.querySelector(
-          'a[href*="/status/"]'
-        ) as HTMLAnchorElement;
+        const tweetLink = tweetContainer.querySelector('a[href*="/status/"]') as HTMLAnchorElement;
         if (tweetLink) {
           urlInfo = extractUrlInfo(tweetLink.href);
         } else {
@@ -58,21 +54,17 @@ export function VideoDownloadButton({
       }
 
       // 使用设置中的视频文件名格式
-      const filename = generateFileName(
-        settingsManager.settings.videoFileName,
-        {
-          Userid: urlInfo.userid,
-          Tid: urlInfo.tid,
-          Time: Date.now().toString(),
-        }
-      );
+      const filename = generateFileName(settingsManager.settings.videoFileName, {
+        Userid: urlInfo.userid,
+        Tid: urlInfo.tid,
+        Time: Date.now().toString(),
+      });
 
       // 下载视频
       await downloadFile(videoUrl, `${filename}.mp4`);
     } catch (error) {
       console.error("视频下载失败:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       alert(`下载失败: ${errorMessage}`);
     } finally {
       setIsDownloading(false);

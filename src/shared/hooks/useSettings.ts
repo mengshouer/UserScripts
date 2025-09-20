@@ -5,10 +5,7 @@ import type { BaseSettings } from "../types";
 /**
  * 设置管理 Hook
  */
-export function createSettingsHook<T extends BaseSettings>(
-  storageKey: string,
-  defaultSettings: T
-) {
+export function createSettingsHook<T extends BaseSettings>(storageKey: string, defaultSettings: T) {
   const storageManager = new StorageManager(storageKey, defaultSettings);
 
   // 创建响应式信号
@@ -29,7 +26,7 @@ export function createSettingsHook<T extends BaseSettings>(
       settingsSignal.value = updated;
 
       // 触发自定义事件通知设置已变更
-      window.dispatchEvent(new CustomEvent('x-downloader-settings-changed'));
+      window.dispatchEvent(new CustomEvent("x-downloader-settings-changed"));
     },
 
     // 重置设置
@@ -38,7 +35,7 @@ export function createSettingsHook<T extends BaseSettings>(
       settingsSignal.value = reset;
 
       // 触发自定义事件通知设置已变更
-      window.dispatchEvent(new CustomEvent('x-downloader-settings-changed'));
+      window.dispatchEvent(new CustomEvent("x-downloader-settings-changed"));
       return reset;
     },
 

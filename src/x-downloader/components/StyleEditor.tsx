@@ -50,11 +50,7 @@ export function StyleEditor({ value, onChange }: StyleEditorProps) {
   const jsonToObject = (jsonStr: string) => {
     try {
       const parsed = JSON.parse(jsonStr);
-      if (
-        typeof parsed === "object" &&
-        parsed !== null &&
-        !Array.isArray(parsed)
-      ) {
+      if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
         return parsed;
       }
       throw new Error("必须是对象格式");

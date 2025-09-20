@@ -16,10 +16,7 @@ import { render } from "preact";
 import { App } from "./components/App";
 import { ImageDownloadButton } from "./components/ImageDownloadButton";
 import { VideoDownloadButton } from "./components/VideoDownloadButton";
-import {
-  findVideoContainer,
-  findVideoPlayerContainer,
-} from "./utils/videoUtils";
+import { findVideoContainer, findVideoPlayerContainer } from "./utils/videoUtils";
 
 // 公共的设置获取逻辑
 const getSettings = () => {
@@ -27,10 +24,7 @@ const getSettings = () => {
 };
 
 // 通用的按钮显示隐藏逻辑
-const createButtonVisibilityHandlers = (
-  buttonContainer: HTMLElement,
-  settingKey: string
-) => {
+const createButtonVisibilityHandlers = (buttonContainer: HTMLElement, settingKey: string) => {
   const showButton = () => {
     const settings = getSettings();
     const shouldShow = settings[settingKey] !== false;
@@ -81,7 +75,7 @@ function setupImageInteraction(img: HTMLImageElement): void {
   // 按钮显示隐藏逻辑
   const { showButton, hideButton } = createButtonVisibilityHandlers(
     buttonContainer,
-    "showDownloadButton"
+    "showDownloadButton",
   );
 
   // 鼠标进入图片容器时显示按钮
@@ -110,7 +104,7 @@ function setupImageInteraction(img: HTMLImageElement): void {
 }
 
 /**
- * 为图片添加下载按钮（新的实现）
+ * 为图片添加下载按钮
  */
 function addDownloadButtonToImage(images: NodeListOf<Element>): void {
   images.forEach((element) => {
@@ -151,8 +145,7 @@ function setupVideoInteraction(video: HTMLVideoElement): void {
   }
 
   // 查找视频容器
-  const videoContainer =
-    findVideoContainer(video) || findVideoPlayerContainer(video);
+  const videoContainer = findVideoContainer(video) || findVideoPlayerContainer(video);
   if (!videoContainer) {
     return;
   }
@@ -166,10 +159,7 @@ function setupVideoInteraction(video: HTMLVideoElement): void {
   videoContainer.appendChild(buttonContainer);
 
   // 渲染视频下载按钮
-  render(
-    <VideoDownloadButton tweetContainer={tweetContainer} />,
-    buttonContainer
-  );
+  render(<VideoDownloadButton tweetContainer={tweetContainer} />, buttonContainer);
 
   // 存储按钮容器引用
   videoButtonContainers.set(video, buttonContainer);
@@ -177,7 +167,7 @@ function setupVideoInteraction(video: HTMLVideoElement): void {
   // 按钮显示隐藏逻辑
   const { showButton, hideButton } = createButtonVisibilityHandlers(
     buttonContainer,
-    "showVideoDownloadButton"
+    "showVideoDownloadButton",
   );
 
   // 鼠标进入视频容器时显示按钮
@@ -208,7 +198,7 @@ function setupVideoInteraction(video: HTMLVideoElement): void {
 }
 
 /**
- * 为视频添加下载按钮（新的实现）
+ * 为视频添加下载按钮
  */
 function addDownloadButtonToVideo(videos: NodeListOf<Element>): void {
   videos.forEach((element) => {
@@ -232,14 +222,12 @@ function watchForMedia(): void {
     processTimeout = setTimeout(() => {
       // 处理图片 - 只查找新增的图片
       const images = document.querySelectorAll(
-        'img[src^="https://pbs.twimg.com/media/"]:not([data-download-processed])'
+        'img[src^="https://pbs.twimg.com/media/"]:not([data-download-processed])',
       );
       addDownloadButtonToImage(images);
 
       // 处理视频 - 只查找新增的视频
-      const videos = document.querySelectorAll(
-        "video:not([data-video-download-processed])"
-      );
+      const videos = document.querySelectorAll("video:not([data-video-download-processed])");
       addDownloadButtonToVideo(videos);
     }, 100); // 100ms防抖延迟
   };
@@ -253,7 +241,7 @@ function watchForMedia(): void {
     const hasRelevantChanges = mutations.some(
       (mutation) =>
         mutation.type === "childList" &&
-        (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0)
+        (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0),
     );
 
     if (hasRelevantChanges) {
@@ -292,15 +280,10 @@ function watchForMedia(): void {
         container.style.display = "none";
       } else {
         // 需要找到对应的 tweet 容器来重新渲染视频按钮
-        const tweetContainer = video.closest(
-          '[data-testid="tweet"]'
-        ) as HTMLElement;
+        const tweetContainer = video.closest('[data-testid="tweet"]') as HTMLElement;
         if (tweetContainer) {
           // 重新渲染视频下载按钮以应用最新的样式设置
-          render(
-            <VideoDownloadButton tweetContainer={tweetContainer} />,
-            container
-          );
+          render(<VideoDownloadButton tweetContainer={tweetContainer} />, container);
         }
         // 重置 display 属性，但仍然保持隐藏状态（等待鼠标悬停）
         container.style.display = "none";
@@ -316,10 +299,7 @@ function watchForMedia(): void {
   });
 
   // 监听自定义事件（当前页面修改设置时触发）
-  window.addEventListener(
-    "x-downloader-settings-changed",
-    updateExistingButtons
-  );
+  window.addEventListener("x-downloader-settings-changed", updateExistingButtons);
 
   // 清理函数
   const cleanup = () => {

@@ -11,7 +11,9 @@
     "watch": "node build.js watch",
     "lint": "eslint src/ --ext .ts,.tsx,.js",
     "lint:fix": "eslint src/ --ext .ts,.tsx,.js --fix",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\""
   },
   "keywords": [
     "userscript",
@@ -28,6 +30,7 @@
     "@typescript-eslint/parser": "^6.21.0",
     "@vitejs/plugin-legacy": "^7.2.1",
     "eslint": "^8.0.0",
+    "prettier": "^3.6.2",
     "rollup-plugin-userscript-metablock": "^0.4.3",
     "typescript": "^5.0.0",
     "vite": "^7.1.5"
