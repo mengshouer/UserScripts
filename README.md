@@ -4,9 +4,9 @@
 
 ## 脚本列表
 
-| 脚本名       | 描述                            | 安装(min)     | 安装(unzip)                        |
-| ------------ | ------------------------------- | -------------- | ---------------------------------- |
-| x-downloader | 给 X 的图片或者视频添加下载按钮 | [安装](https://raw.githubusercontent.com/mengshouer/UserScripts/refs/heads/release/x-downloader.min.user.js) | [安装](https://raw.githubusercontent.com/mengshouer/UserScripts/refs/heads/release/x-downloader.user.js) |
+| 脚本名       | 描述                            | 安装(min) / 备用(jsdelivr)                                                                                                                                                                                 | 安装(unzip)                                                                                              |
+| ------------ | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| x-downloader | 给 X 的图片或者视频添加下载按钮 | [安装](https://raw.githubusercontent.com/mengshouer/UserScripts/refs/heads/release/x-downloader.min.user.js) / [备用](https://cdn.jsdelivr.net/gh/mengshouer/UserScripts@release/x-downloader.min.user.js) | [安装](https://raw.githubusercontent.com/mengshouer/UserScripts/refs/heads/release/x-downloader.user.js) |
 
 ## 开发环境设置
 
