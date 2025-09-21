@@ -53,8 +53,7 @@ export interface DownloaderSettings extends BaseSettings {
   readonly showDownloadButton: boolean;
   readonly videoFileName: string;
   readonly showVideoDownloadButton: boolean;
-  readonly imageButtonStyle: Readonly<Record<string, string | number>>;
-  readonly videoButtonStyle: Readonly<Record<string, string | number>>;
+  readonly showUniversalDownloadButton: boolean;
 }
 
 // === 组件通用类型 ===

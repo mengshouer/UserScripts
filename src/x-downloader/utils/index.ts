@@ -2,6 +2,32 @@ import { extractUrlInfo } from "../../shared";
 export { extractVideoUrl, findVideoContainer, findVideoPlayerContainer } from "./videoUtils";
 
 /**
+ * 统一的错误处理函数
+ */
+export function handleDownloadError(error: unknown, prefix: string = "下载失败"): void {
+  console.error(`${prefix}:`, error);
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  alert(`${prefix}: ${errorMessage}`);
+}
+
+/**
+ * 从 DOM 元素中查找最近的 Tweet 容器
+ *
+ * @param element - 起始的 DOM 元素
+ * @returns 最近的 Tweet 容器元素，找不到则返回 null
+ */
+export function findTweetContainer(element: HTMLElement): HTMLElement | null {
+  let current: HTMLElement | null = element;
+  while (current && current.tagName !== "BODY") {
+    if (current.tagName === "ARTICLE" && current.getAttribute("data-testid") === "tweet") {
+      return current;
+    }
+    current = current.parentElement;
+  }
+  return null;
+}
+
+/**
  * 从 DOM 元素中提取 Tweet ID
  */
 export function getTweetIdFromElement(element: HTMLElement): string | undefined {

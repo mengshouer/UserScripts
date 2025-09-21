@@ -2,7 +2,7 @@
 // @name         X(Twitter) Downloader
 // @name:zh-CN   X（Twitter）下载器
 // @author       mengshouer
-// @version      0.5
+// @version      0.6
 // @description  Add a download button to the media.
 // @include      *://twitter.com/*
 // @include      *://*.twitter.com/*
@@ -16,12 +16,15 @@ import { render } from "preact";
 import { App } from "./components/App";
 import { ImageDownloadButton } from "./components/ImageDownloadButton";
 import { VideoDownloadButton } from "./components/VideoDownloadButton";
+import { UniversalDownloadButton } from "./components/UniversalDownloadButton";
 import { findVideoContainer, findVideoPlayerContainer } from "./utils/videoUtils";
+import { findTweetContainer } from "./utils";
 
-const IMAGE_SELECTOR = 'img[src^="https://pbs.twimg.com/media/"]';
-const VIDEO_SELECTOR = "video";
+export const IMAGE_SELECTOR = 'img[src^="https://pbs.twimg.com/media/"]';
+export const VIDEO_SELECTOR = "video";
 const processedImages = new WeakSet<HTMLImageElement>();
 const processedVideos = new WeakSet<HTMLVideoElement>();
+const processedTweets = new WeakSet<HTMLElement>();
 
 // 公共的设置获取逻辑
 const getSettings = () => {
@@ -87,6 +90,37 @@ const ensureRelativePosition = (element: HTMLElement) => {
   }
 };
 
+/**
+ * 为Tweet添加通用下载按钮
+ */
+function setupUniversalDownloadButton(tweetElement: HTMLElement): void {
+  if (processedTweets.has(tweetElement)) {
+    return;
+  }
+
+  // 查找role="group"的div元素
+  const actionGroup = tweetElement.querySelector('div[role="group"]');
+  if (!actionGroup) {
+    return;
+  }
+
+  // 创建按钮容器
+  const buttonContainer = document.createElement("div");
+  buttonContainer.style.cssText = `
+    display: inline-flex;
+    align-items: center;
+    margin-left: auto;
+  `;
+
+  // 将按钮添加到action group的最后
+  actionGroup.appendChild(buttonContainer);
+
+  // 渲染通用下载按钮
+  render(<UniversalDownloadButton tweetContainer={tweetElement} />, buttonContainer);
+
+  processedTweets.add(tweetElement);
+}
+
 const isTargetImage = (img: HTMLImageElement) =>
   Boolean(img.src) && img.src.startsWith("https://pbs.twimg.com/media/");
 
@@ -96,6 +130,12 @@ const isTargetImage = (img: HTMLImageElement) =>
 function setupImageInteraction(img: HTMLImageElement): void {
   if (processedImages.has(img) || !isTargetImage(img)) {
     return;
+  }
+
+  const tweetContainer = findTweetContainer(img);
+
+  if (tweetContainer) {
+    setupUniversalDownloadButton(tweetContainer);
   }
 
   const imageContainer = img.parentElement?.parentElement;
@@ -118,21 +158,13 @@ function setupVideoInteraction(video: HTMLVideoElement): void {
     return;
   }
 
-  // 查找对应的 Tweet 容器
-  let tweetContainer: HTMLElement | null = video;
-  while (tweetContainer && tweetContainer.tagName !== "BODY") {
-    if (
-      tweetContainer.tagName === "ARTICLE" &&
-      tweetContainer.getAttribute("data-testid") === "tweet"
-    ) {
-      break;
-    }
-    tweetContainer = tweetContainer.parentElement;
-  }
+  const tweetContainer = findTweetContainer(video);
 
   if (!tweetContainer) {
     return;
   }
+
+  setupUniversalDownloadButton(tweetContainer);
 
   // 查找视频容器
   const videoContainer = findVideoContainer(video) || findVideoPlayerContainer(video);
@@ -159,10 +191,12 @@ const scanNodeForMedia = (node: Node) => {
   }
 
   if (node instanceof Element || node instanceof Document || node instanceof DocumentFragment) {
+    // 处理图片
     node.querySelectorAll(IMAGE_SELECTOR).forEach((img) => {
       setupImageInteraction(img as HTMLImageElement);
     });
 
+    // 处理视频
     node.querySelectorAll(VIDEO_SELECTOR).forEach((video) => {
       setupVideoInteraction(video as HTMLVideoElement);
     });

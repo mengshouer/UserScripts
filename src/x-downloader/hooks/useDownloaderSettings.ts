@@ -6,16 +6,9 @@ const DEFAULT_SETTINGS: DownloaderSettings = {
   showDownloadButton: true,
   // 视频相关设置
   videoFileName: "<%Userid> <%Tid>",
-  showVideoDownloadButton: true,
-  // 按钮样式设置
-  imageButtonStyle: {
-    bottom: "8px",
-    right: "8px",
-  },
-  videoButtonStyle: {
-    bottom: "70px",
-    right: "8px",
-  },
+  showVideoDownloadButton: false,
+  // 通用下载按钮设置
+  showUniversalDownloadButton: true,
 };
 
 const STORAGE_KEY = "x-downloader-settings";

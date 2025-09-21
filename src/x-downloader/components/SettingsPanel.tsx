@@ -1,6 +1,5 @@
 import { Modal, Button, Input, Checkbox, useTheme } from "../../shared";
 import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
-import { StyleEditor } from "./StyleEditor";
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -75,15 +74,6 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           </Checkbox>
         </div>
 
-        <div style={fieldContainerStyle}>
-          <label style={labelStyle}>图片下载按钮 CSS 样式属性</label>
-          <StyleEditor
-            value={settingsManager.settings.imageButtonStyle}
-            onChange={(value) => settingsManager.setSetting("imageButtonStyle", value)}
-            placeholder='{\n  "bottom": "8px",\n  "left": "8px"\n}'
-          />
-        </div>
-
         {/* 视频下载设置 */}
         <div style={sectionTitleStyle}>视频下载设置</div>
 
@@ -106,13 +96,19 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           </Checkbox>
         </div>
 
+        {/* 通用下载设置 */}
+        <div style={sectionTitleStyle}>通用下载设置</div>
+
         <div style={fieldContainerStyle}>
-          <label style={labelStyle}>视频下载按钮 CSS 样式属性</label>
-          <StyleEditor
-            value={settingsManager.settings.videoButtonStyle}
-            onChange={(value) => settingsManager.setSetting("videoButtonStyle", value)}
-            placeholder='{\n  "bottom": "50px",\n  "right": "8px"\n}'
-          />
+          <Checkbox
+            checked={settingsManager.settings.showUniversalDownloadButton}
+            onChange={(checked) =>
+              settingsManager.setSetting("showUniversalDownloadButton", checked)
+            }
+          >
+            显示通用下载按钮
+          </Checkbox>
+          <div style={helpTextStyle}>在推文操作栏中显示统一的下载按钮，自动检测媒体类型</div>
         </div>
 
         {/* 按钮组 */}
