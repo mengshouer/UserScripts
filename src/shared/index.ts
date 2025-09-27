@@ -11,8 +11,13 @@ export { message } from "./utils/message";
 // Hooks
 export { useTheme } from "./hooks/useTheme";
 
+// i18n
+export * from "./i18n";
+
 // 组件
 export { Button } from "./components/Button";
 export { Modal } from "./components/Modal";
 export { Input } from "./components/Input";
 export { Checkbox } from "./components/Checkbox";
+export { LanguageSelector } from "./components/LanguageSelector";
+export { Select } from "./components/Select";

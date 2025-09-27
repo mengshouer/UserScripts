@@ -2,7 +2,7 @@
 // @name         X(Twitter) Downloader
 // @name:zh-CN   X（Twitter）下载器
 // @author       mengshouer
-// @version      0.7
+// @version      0.8
 // @description  Add a download button to the media.
 // @include      *://twitter.com/*
 // @include      *://*.twitter.com/*
@@ -14,6 +14,7 @@
 
 import { render } from "preact";
 import { App } from "./components/App";
+import "./i18n"; // 导入包含所有语言的 i18n
 import { ImageDownloadButton } from "./components/ImageDownloadButton";
 import { VideoDownloadButton } from "./components/VideoDownloadButton";
 import { UniversalDownloadButton } from "./components/UniversalDownloadButton";
