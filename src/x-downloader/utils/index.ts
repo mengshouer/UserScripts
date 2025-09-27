@@ -1,5 +1,6 @@
-import { extractUrlInfo } from "../../shared";
+import { extractUrlInfo, message } from "../../shared";
 export { extractVideoUrl, findVideoContainer, findVideoPlayerContainer } from "./videoUtils";
+export { likeTweet } from "./likeUtils";
 
 /**
  * 统一的错误处理函数
@@ -7,7 +8,7 @@ export { extractVideoUrl, findVideoContainer, findVideoPlayerContainer } from ".
 export function handleDownloadError(error: unknown, prefix: string = "下载失败"): void {
   console.error(`${prefix}:`, error);
   const errorMessage = error instanceof Error ? error.message : String(error);
-  alert(`${prefix}: ${errorMessage}`);
+  message.error(`${prefix}: ${errorMessage}`);
 }
 
 /**
@@ -19,9 +20,16 @@ export function handleDownloadError(error: unknown, prefix: string = "下载失�
 export function findTweetContainer(element: HTMLElement): HTMLElement | null {
   let current: HTMLElement | null = element;
   while (current && current.tagName !== "BODY") {
+    // 普通 timeline 的 tweet 容器
     if (current.tagName === "ARTICLE" && current.getAttribute("data-testid") === "tweet") {
       return current;
     }
+
+    // 照片模式的对话框容器
+    if (current.getAttribute("role") === "dialog") {
+      return current;
+    }
+
     current = current.parentElement;
   }
   return null;

@@ -3,7 +3,7 @@ import { handleDownloadError } from "../utils";
 import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
 import { handleImageDownload } from "./ImageDownloadButton";
 import { handleVideoDownload } from "./VideoDownloadButton";
-import { styled } from "../../shared/utils/goober-setup";
+import { styled, message } from "../../shared";
 import { IMAGE_SELECTOR, VIDEO_SELECTOR } from "..";
 
 interface UniversalDownloadButtonProps {
@@ -41,7 +41,7 @@ const DownloadIcon = styled("svg")`
 `;
 
 export function UniversalDownloadButton({ tweetContainer }: UniversalDownloadButtonProps) {
-  const settingsManager = useDownloaderSettings();
+  const { settings } = useDownloaderSettings();
   const [isDownloading, setIsDownloading] = useState(false);
   const [mediaType, setMediaType] = useState<"image" | "video" | "none">("none");
 
@@ -95,7 +95,7 @@ export function UniversalDownloadButton({ tweetContainer }: UniversalDownloadBut
   }, [tweetContainer]);
 
   // 如果没有媒体或者设置禁用了显示按钮，不显示
-  if (mediaType === "none" || !settingsManager.settings.showUniversalDownloadButton) {
+  if (mediaType === "none" || !settings.showUniversalDownloadButton) {
     return null;
   }
 
@@ -105,15 +105,18 @@ export function UniversalDownloadButton({ tweetContainer }: UniversalDownloadBut
   const downloadImages = async (container: HTMLElement) => {
     const images = container.querySelectorAll(IMAGE_SELECTOR) as NodeListOf<HTMLImageElement>;
 
-    // 使用 Promise.allSettled 来处理部分失败的情况
-    const downloadPromises = Array.from(images).map((img) => {
+    const downloadPromises = Array.from(images).map((img, index) => {
       if (!img) return Promise.resolve();
-      return handleImageDownload(nopSetDownloading, img, settingsManager.settings.fileName);
+      return handleImageDownload({
+        setIsDownloading: nopSetDownloading,
+        targetImage: img,
+        settings,
+        skipAutoLike: index > 0, // 只有第一张图片允许点赞，其他跳过
+      });
     });
 
     const results = await Promise.allSettled(downloadPromises);
 
-    // 检查结果并提供反馈
     const failed = results.filter((result) => result.status === "rejected");
     if (failed.length > 0) {
       const successCount = results.length - failed.length;
@@ -125,12 +128,12 @@ export function UniversalDownloadButton({ tweetContainer }: UniversalDownloadBut
     const video = container.querySelector(VIDEO_SELECTOR) as HTMLVideoElement | null;
     if (!video) return;
 
-    await handleVideoDownload(
-      nopSetDownloading,
-      video?.src,
-      container,
-      settingsManager.settings.videoFileName,
-    );
+    await handleVideoDownload({
+      setIsDownloading: nopSetDownloading,
+      src: video?.src,
+      tweetContainer: container,
+      settings,
+    });
   };
 
   const getTitle = () => {
@@ -153,10 +156,10 @@ export function UniversalDownloadButton({ tweetContainer }: UniversalDownloadBut
       if (mediaType === "image") {
         await downloadImages(tweetContainer);
         const count = tweetContainer.querySelectorAll(IMAGE_SELECTOR).length;
-        console.log(`✅ 成功下载 ${count} 张图片`);
+        message.success(`成功下载 ${count} 张图片`);
       } else if (mediaType === "video") {
         await downloadVideo(tweetContainer);
-        console.log("✅ 视频下载成功");
+        message.success("视频下载成功");
       }
     } catch (error) {
       handleDownloadError(error, "下载失败");

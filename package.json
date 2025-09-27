@@ -9,6 +9,7 @@
     "dev": "node build.js x-downloader --dev",
     "dev:watch": "node build.js watch",
     "watch": "node build.js watch",
+    "watch:prod": "node build.js watch --prod",
     "lint": "eslint src/ --ext .ts,.tsx,.js",
     "lint:fix": "eslint src/ --ext .ts,.tsx,.js --fix",
     "typecheck": "tsc --noEmit",

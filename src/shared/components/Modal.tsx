@@ -92,12 +92,6 @@ export function Modal({
     transition: "background-color 0.2s ease",
   };
 
-  // 悬停效果处理器
-  const handleCloseHover = (e: Event, isHover: boolean) => {
-    const target = e.target as HTMLElement;
-    target.style.backgroundColor = isHover ? theme.borderColor : "transparent";
-  };
-
   return (
     <Overlay onClick={onClose}>
       <ModalContainer
@@ -110,8 +104,14 @@ export function Modal({
           <button
             style={closeButtonStyle}
             onClick={onClose}
-            onMouseEnter={(e: Event) => handleCloseHover(e, true)}
-            onMouseLeave={(e: Event) => handleCloseHover(e, false)}
+            onMouseEnter={(e: Event) => {
+              const target = e.target as HTMLElement;
+              target.style.backgroundColor = theme.borderColor;
+            }}
+            onMouseLeave={(e: Event) => {
+              const target = e.target as HTMLElement;
+              target.style.backgroundColor = "transparent";
+            }}
           >
             ×
           </button>

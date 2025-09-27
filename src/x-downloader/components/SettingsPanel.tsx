@@ -8,11 +8,7 @@ interface SettingsPanelProps {
 
 export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const { theme } = useTheme();
-  const settingsManager = useDownloaderSettings();
-
-  const handleReset = () => {
-    settingsManager.resetSettings();
-  };
+  const { settings, setSetting, resetSettings } = useDownloaderSettings();
 
   const sectionTitleStyle = {
     fontSize: "16px",
@@ -56,8 +52,8 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
         <div style={fieldContainerStyle}>
           <label style={labelStyle}>图片文件名格式</label>
           <Input
-            value={settingsManager.settings.fileName}
-            onChange={(value) => settingsManager.setSetting("fileName", value)}
+            value={settings.fileName}
+            onChange={(value) => setSetting("fileName", value)}
             placeholder="<%Userid> <%Tid>_p<%PicNo>"
           />
           <div style={helpTextStyle}>
@@ -67,8 +63,8 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
         <div style={fieldContainerStyle}>
           <Checkbox
-            checked={settingsManager.settings.showDownloadButton}
-            onChange={(checked) => settingsManager.setSetting("showDownloadButton", checked)}
+            checked={settings.showDownloadButton}
+            onChange={(checked) => setSetting("showDownloadButton", checked)}
           >
             显示图片下载按钮
           </Checkbox>
@@ -80,8 +76,8 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
         <div style={fieldContainerStyle}>
           <label style={labelStyle}>视频文件名格式</label>
           <Input
-            value={settingsManager.settings.videoFileName}
-            onChange={(value) => settingsManager.setSetting("videoFileName", value)}
+            value={settings.videoFileName}
+            onChange={(value) => setSetting("videoFileName", value)}
             placeholder="<%Userid> <%Tid>_video_<%Time>"
           />
           <div style={helpTextStyle}>可用变量：&lt;%Userid&gt;、&lt;%Tid&gt;、&lt;%Time&gt;</div>
@@ -89,8 +85,8 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
         <div style={fieldContainerStyle}>
           <Checkbox
-            checked={settingsManager.settings.showVideoDownloadButton}
-            onChange={(checked) => settingsManager.setSetting("showVideoDownloadButton", checked)}
+            checked={settings.showVideoDownloadButton}
+            onChange={(checked) => setSetting("showVideoDownloadButton", checked)}
           >
             显示视频下载按钮
           </Checkbox>
@@ -101,19 +97,32 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
         <div style={fieldContainerStyle}>
           <Checkbox
-            checked={settingsManager.settings.showUniversalDownloadButton}
-            onChange={(checked) =>
-              settingsManager.setSetting("showUniversalDownloadButton", checked)
-            }
+            checked={settings.showUniversalDownloadButton}
+            onChange={(checked) => setSetting("showUniversalDownloadButton", checked)}
           >
             显示通用下载按钮
           </Checkbox>
           <div style={helpTextStyle}>在推文操作栏中显示统一的下载按钮，自动检测媒体类型</div>
         </div>
 
+        <div style={fieldContainerStyle}>
+          <Checkbox
+            checked={settings.autoLikeOnDownload}
+            onChange={(checked) => setSetting("autoLikeOnDownload", checked)}
+          >
+            下载时自动点赞
+          </Checkbox>
+          <div style={helpTextStyle}>下载图片或视频时自动为推文点赞</div>
+        </div>
+
         {/* 按钮组 */}
         <div style={buttonGroupStyle}>
-          <Button variant="secondary" onClick={handleReset}>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              resetSettings();
+            }}
+          >
             重置为默认设置
           </Button>
         </div>

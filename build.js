@@ -165,7 +165,7 @@ async function buildAll() {
   return failed === 0;
 }
 
-async function watchScript(scriptName) {
+async function watchScript(scriptName, watchMode = "dev") {
   const config = scriptFiles[scriptName];
 
   if (!config) {
@@ -180,19 +180,22 @@ async function watchScript(scriptName) {
     return false;
   }
 
-  console.log(`👀 Watching ${scriptName} for changes...`);
+  const buildMode = watchMode === "prod" ? "prod" : "dev";
+  const outputSuffix = buildMode === "prod" ? ".min.user.js" : ".user.js";
+
+  console.log(`👀 Watching ${scriptName} for changes (${buildMode} mode)...`);
   console.log(`📁 Source: ${config.source}`);
-  console.log(`📦 Output: dist/${config.output}`);
+  console.log(`📦 Output: dist/${config.output.replace(".user.js", outputSuffix)}`);
   console.log("Press Ctrl+C to stop\n");
 
   // 使用 Vite 的 watch 模式，使用 shell 模式保证跨平台兼容性
   const child = spawn("npx", ["vite", "build", "--watch"], {
     stdio: "inherit",
-    shell: true, // 使用 shell 模式，让系统自动处理命令解析和路径问题
+    shell: true,
     env: {
       ...process.env,
       SCRIPT: scriptName,
-      BUILD_MODE: "dev",
+      BUILD_MODE: buildMode,
     },
   });
 
@@ -285,8 +288,9 @@ async function main() {
 
     case "watch":
     case "w": {
-      const scriptName = args[1] || "x-downloader";
-      await watchScript(scriptName);
+      const scriptName = args.filter((arg) => !arg.startsWith("--"))[1] || "x-downloader";
+      const watchMode = buildMode === "prod" ? "prod" : "dev";
+      await watchScript(scriptName, watchMode);
       break;
     }
 
@@ -306,10 +310,9 @@ async function main() {
       console.log("  (default)      - Build both versions");
       console.log("");
       console.log("Examples:");
-      console.log("  node build.js watch x-downloader");
-      console.log(
-        "  node build.js w                    # Default to x-downloader"
-      );
+      console.log("  node build.js watch x-downloader        # Watch dev version");
+      console.log("  node build.js watch x-downloader --prod # Watch minified version");
+      console.log("  node build.js w --prod                  # Watch minified (default script)");
       console.log("");
       await listScripts();
       break;

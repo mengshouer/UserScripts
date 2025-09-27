@@ -4,16 +4,18 @@ import type { DownloaderSettings } from "../../shared/types";
 const DEFAULT_SETTINGS: DownloaderSettings = {
   fileName: "<%Userid> <%Tid>_p<%PicNo>",
   showDownloadButton: true,
-  // 视频相关设置
   videoFileName: "<%Userid> <%Tid>",
   showVideoDownloadButton: false,
-  // 通用下载按钮设置
   showUniversalDownloadButton: true,
+  autoLikeOnDownload: false,
 };
 
 const STORAGE_KEY = "x-downloader-settings";
 
+// 创建单例设置管理器
+const settingsHook = createSettingsHook(STORAGE_KEY, DEFAULT_SETTINGS);
+
 // 创建 X-downloader 特定的设置管理
 export function useDownloaderSettings() {
-  return createSettingsHook(STORAGE_KEY, DEFAULT_SETTINGS);
+  return settingsHook;
 }

@@ -2,7 +2,7 @@
 // @name         X(Twitter) Downloader
 // @name:zh-CN   X（Twitter）下载器
 // @author       mengshouer
-// @version      0.6
+// @version      0.7
 // @description  Add a download button to the media.
 // @include      *://twitter.com/*
 // @include      *://*.twitter.com/*
@@ -27,9 +27,7 @@ const processedVideos = new WeakSet<HTMLVideoElement>();
 const processedTweets = new WeakSet<HTMLElement>();
 
 // 公共的设置获取逻辑
-const getSettings = () => {
-  return JSON.parse(localStorage.getItem("x-downloader-settings") || "{}");
-};
+const getSettings = () => JSON.parse(localStorage.getItem("x-downloader-settings") || "{}");
 
 // 通用的按钮显示隐藏逻辑
 const createButtonVisibilityHandlers = (
@@ -40,12 +38,9 @@ const createButtonVisibilityHandlers = (
   const showButton = () => {
     const settings = getSettings();
     const shouldShow = settings[settingKey] !== false;
+    buttonContainer.style.display = shouldShow ? "block" : "none";
     if (shouldShow) {
-      // 重新渲染以应用最新样式
       rerenderCallback();
-      buttonContainer.style.display = "block";
-    } else {
-      buttonContainer.style.display = "none";
     }
   };
 

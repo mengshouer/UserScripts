@@ -115,14 +115,15 @@ function extractMediaFromTweetData(tweetData: any): any[] {
 
     // 找到第一个包含媒体的条目
     for (const entry of timelineAddEntries.entries) {
-      const content = entry.content;
+      const { content } = entry;
+      const { entryType, itemContent } = content;
+
       if (
-        content.entryType === "TimelineTimelineItem" &&
-        content.itemContent &&
-        content.itemContent.itemType === "TimelineTweet" &&
-        content.itemContent.tweet_results?.result?.legacy?.extended_entities?.media
+        entryType === "TimelineTimelineItem" &&
+        itemContent?.itemType === "TimelineTweet" &&
+        itemContent.tweet_results?.result?.legacy?.extended_entities?.media
       ) {
-        return content.itemContent.tweet_results.result.legacy.extended_entities.media;
+        return itemContent.tweet_results.result.legacy.extended_entities.media;
       }
     }
 
@@ -154,9 +155,8 @@ function getCSRFToken(): string | undefined {
   for (const cookie of cookies) {
     const [name, value] = cookie.trim().split("=");
     if (name === "ct0" && value) {
-      const token = decodeURIComponent(value);
-      cachedCsrfToken = token;
-      return token;
+      cachedCsrfToken = decodeURIComponent(value);
+      return cachedCsrfToken;
     }
   }
 

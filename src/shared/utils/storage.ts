@@ -20,7 +20,7 @@ export class StorageManager<T extends BaseSettings> {
         return { ...this.defaultSettings, ...parsed };
       }
     } catch (error) {
-      console.log("Failed to load settings:", error);
+      console.debug("Failed to load settings:", error);
     }
     return { ...this.defaultSettings };
   }
@@ -35,7 +35,7 @@ export class StorageManager<T extends BaseSettings> {
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(updatedSettings));
     } catch (error) {
-      console.log("Failed to save settings:", error);
+      console.debug("Failed to save settings:", error);
     }
 
     return updatedSettings;
@@ -48,7 +48,7 @@ export class StorageManager<T extends BaseSettings> {
     try {
       localStorage.removeItem(this.storageKey);
     } catch (error) {
-      console.log("Failed to reset settings:", error);
+      console.debug("Failed to reset settings:", error);
     }
     return { ...this.defaultSettings };
   }

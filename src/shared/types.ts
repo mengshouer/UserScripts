@@ -54,6 +54,7 @@ export interface DownloaderSettings extends BaseSettings {
   readonly videoFileName: string;
   readonly showVideoDownloadButton: boolean;
   readonly showUniversalDownloadButton: boolean;
+  readonly autoLikeOnDownload: boolean;
 }
 
 // === 组件通用类型 ===
@@ -112,23 +113,3 @@ export interface StorageManager<T extends BaseSettings> {
   saveSettings(settings: Partial<T>): void;
   resetSettings(): void;
 }
-
-// === 错误处理类型 ===
-export interface AppError extends Error {
-  readonly code?: string;
-  readonly context?: Record<string, unknown>;
-}
-
-// === 性能监控类型 ===
-export interface PerformanceMetrics {
-  readonly renderTime: number;
-  readonly memoryUsage?: number;
-  readonly domNodes?: number;
-}
-
-// 类型工具函数
-export type Nullable<T> = T | null;
-export type Optional<T> = T | undefined;
-export type ReadonlyDeep<T> = {
-  readonly [P in keyof T]: T[P] extends object ? ReadonlyDeep<T[P]> : T[P];
-};

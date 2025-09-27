@@ -14,6 +14,31 @@ export function createSettingsHook<T extends BaseSettings>(storageKey: string, d
   // 计算属性 - 便于组件访问特定设置
   const computedSettings = computed(() => settingsSignal.value);
 
+  const updateSettings = (newSettings: Partial<T>) => {
+    const updated = storageManager.saveSettings(newSettings);
+    settingsSignal.value = updated;
+
+    // 触发自定义事件通知设置已变更
+    window.dispatchEvent(new CustomEvent("x-downloader-settings-changed"));
+  };
+
+  const resetSettings = () => {
+    const reset = storageManager.resetSettings();
+    settingsSignal.value = reset;
+
+    // 触发自定义事件通知设置已变更
+    window.dispatchEvent(new CustomEvent("x-downloader-settings-changed"));
+    return reset;
+  };
+
+  const getSetting = <K extends keyof T>(key: K): T[K] => {
+    return settingsSignal.value[key];
+  };
+
+  const setSetting = <K extends keyof T>(key: K, value: T[K]) => {
+    updateSettings({ [key]: value } as unknown as Partial<T>);
+  };
+
   return {
     // 获取当前设置
     get settings() {
@@ -21,33 +46,16 @@ export function createSettingsHook<T extends BaseSettings>(storageKey: string, d
     },
 
     // 更新设置
-    updateSettings(newSettings: Partial<T>) {
-      const updated = storageManager.saveSettings(newSettings);
-      settingsSignal.value = updated;
-
-      // 触发自定义事件通知设置已变更
-      window.dispatchEvent(new CustomEvent("x-downloader-settings-changed"));
-    },
+    updateSettings,
 
     // 重置设置
-    resetSettings() {
-      const reset = storageManager.resetSettings();
-      settingsSignal.value = reset;
-
-      // 触发自定义事件通知设置已变更
-      window.dispatchEvent(new CustomEvent("x-downloader-settings-changed"));
-      return reset;
-    },
+    resetSettings,
 
     // 获取单个设置项
-    getSetting<K extends keyof T>(key: K): T[K] {
-      return settingsSignal.value[key];
-    },
+    getSetting,
 
     // 设置单个设置项
-    setSetting<K extends keyof T>(key: K, value: T[K]) {
-      this.updateSettings({ [key]: value } as unknown as Partial<T>);
-    },
+    setSetting,
 
     // 响应式信号（用于组件订阅）
     signal: settingsSignal,

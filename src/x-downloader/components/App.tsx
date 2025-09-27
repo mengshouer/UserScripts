@@ -5,18 +5,13 @@ import { SettingsPanel } from "./SettingsPanel";
 export function App() {
   const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false);
 
-  const handleToggleSettings = () => {
-    setIsSettingsPanelOpen(!isSettingsPanelOpen);
-  };
-
-  const handleCloseSettings = () => {
-    setIsSettingsPanelOpen(false);
-  };
-
   return (
     <>
-      <SettingsButton onClick={handleToggleSettings} isSettingsPanelOpen={isSettingsPanelOpen} />
-      <SettingsPanel isOpen={isSettingsPanelOpen} onClose={handleCloseSettings} />
+      <SettingsButton
+        onClick={() => setIsSettingsPanelOpen(!isSettingsPanelOpen)}
+        isSettingsPanelOpen={isSettingsPanelOpen}
+      />
+      <SettingsPanel isOpen={isSettingsPanelOpen} onClose={() => setIsSettingsPanelOpen(false)} />
     </>
   );
 }

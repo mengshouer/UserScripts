@@ -5,7 +5,8 @@ export type * from "./types";
 export { StorageManager } from "./utils/storage";
 export { preventEventPropagation } from "./utils/dom";
 export { downloadFile, generateFileName, extractUrlInfo, extractFileInfo } from "./utils/download";
-export { styled, css, keyframes, glob } from "./utils/goober-setup";
+export { styled, keyframes } from "./utils/goober-setup";
+export { message } from "./utils/message";
 
 // Hooks
 export { useTheme } from "./hooks/useTheme";

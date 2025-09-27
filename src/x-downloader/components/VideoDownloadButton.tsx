@@ -1,10 +1,12 @@
 import { useState } from "preact/hooks";
-import { downloadFile, generateFileName } from "../../shared";
+import { downloadFile, generateFileName, message } from "../../shared";
+import type { DownloaderSettings } from "../../shared/types";
 import {
   extractVideoUrl,
   getTweetIdFromElement,
   getUserIdFromTweetContainer,
   handleDownloadError,
+  likeTweet,
 } from "../utils";
 import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
 import { DownloadButton } from "./DownloadButton";
@@ -14,41 +16,53 @@ interface VideoDownloadButtonProps {
   tweetContainer: HTMLElement;
 }
 
-export const handleVideoDownload = async (
-  setIsDownloading: (downloading: boolean) => void,
-  src: string | undefined,
-  tweetContainer: HTMLElement,
-  videoFileName: string,
-) => {
+interface VideoDownloadOptions {
+  setIsDownloading: (downloading: boolean) => void;
+  src: string | undefined;
+  tweetContainer: HTMLElement;
+  settings: DownloaderSettings;
+  skipAutoLike?: boolean;
+}
+
+export const handleVideoDownload = async ({
+  setIsDownloading,
+  src,
+  tweetContainer,
+  settings,
+  skipAutoLike = false,
+}: VideoDownloadOptions) => {
   setIsDownloading(true);
   try {
-    // 从 Tweet 容器中获取 Tweet ID
     const tweetId = getTweetIdFromElement(tweetContainer);
     if (!tweetId) {
-      console.error("无法获取 Tweet ID");
+      message.error("无法识别推文，请重试");
       return;
     }
 
-    // 获取视频下载链接
     const videoUrl =
       src && src.startsWith("https://video.twimg.com") ? src : await extractVideoUrl(tweetId);
     if (!videoUrl) {
-      alert("未找到视频下载链接");
+      message.error("未找到视频下载链接");
       return;
     }
 
     const username = getUserIdFromTweetContainer(tweetContainer);
     const urlInfo = { userid: username, tid: tweetId };
 
-    // 使用设置中的视频文件名格式
-    const filename = generateFileName(videoFileName, {
+    const filename = generateFileName(settings.videoFileName, {
       Userid: urlInfo.userid || "unknown",
       Tid: urlInfo.tid,
       Time: Date.now().toString(),
     });
 
-    // 下载视频
     await downloadFile(videoUrl, `${filename}.mp4`);
+
+    if (settings.autoLikeOnDownload && tweetId && !skipAutoLike) {
+      const likeResult = await likeTweet(tweetId);
+      if (!likeResult.success && likeResult.message) {
+        message.error(likeResult.message);
+      }
+    }
   } catch (error) {
     handleDownloadError(error, "视频下载失败");
   } finally {
@@ -57,11 +71,11 @@ export const handleVideoDownload = async (
 };
 
 export function VideoDownloadButton({ src, tweetContainer }: VideoDownloadButtonProps) {
-  const settingsManager = useDownloaderSettings();
+  const { settings } = useDownloaderSettings();
   const [isDownloading, setIsDownloading] = useState(false);
 
   // 如果设置禁用了显示按钮，返回 null
-  if (!settingsManager.settings.showVideoDownloadButton) {
+  if (!settings.showVideoDownloadButton) {
     return null;
   }
 
@@ -70,12 +84,12 @@ export function VideoDownloadButton({ src, tweetContainer }: VideoDownloadButton
       onDownload={() => {
         if (isDownloading) return;
         setIsDownloading(true);
-        handleVideoDownload(
+        handleVideoDownload({
           setIsDownloading,
           src,
           tweetContainer,
-          settingsManager.settings.videoFileName,
-        ).finally(() => {
+          settings,
+        }).finally(() => {
           setIsDownloading(false);
         });
       }}
