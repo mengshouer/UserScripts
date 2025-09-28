@@ -33,7 +33,8 @@ export const handleVideoDownload = async ({
 }: VideoDownloadOptions) => {
   setIsDownloading(true);
   try {
-    const tweetId = getTweetIdFromElement(tweetContainer);
+    const username = getUserIdFromTweetContainer(tweetContainer);
+    const tweetId = getTweetIdFromElement(tweetContainer, username);
     if (!tweetId) {
       message.error("无法识别推文，请重试");
       return;
@@ -46,7 +47,6 @@ export const handleVideoDownload = async ({
       return;
     }
 
-    const username = getUserIdFromTweetContainer(tweetContainer);
     const urlInfo = { userid: username, tid: tweetId };
 
     const filename = generateFileName(settings.videoFileName, {

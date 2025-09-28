@@ -38,7 +38,7 @@ export function findTweetContainer(element: HTMLElement): HTMLElement | null {
 /**
  * 从 DOM 元素中提取 Tweet ID
  */
-export function getTweetIdFromElement(element: HTMLElement): string | undefined {
+export function getTweetIdFromElement(element: HTMLElement, username = ""): string | undefined {
   // 方法1: 从最近的 article 元素的 data-testid 属性中获取
   let current: HTMLElement | null = element;
   while (current && current.tagName !== "BODY") {
@@ -46,7 +46,7 @@ export function getTweetIdFromElement(element: HTMLElement): string | undefined 
       const testId = current.getAttribute("data-testid");
       if (testId === "tweet") {
         // 查找链接中的 tweet ID
-        const links = current.querySelectorAll('a[href*="/status/"]');
+        const links = current.querySelectorAll(`a[href*="${username}/status/"]`);
         for (const link of Array.from(links)) {
           const href = (link as HTMLAnchorElement).href;
           const match = href.match(/\/status\/(\d+)/);

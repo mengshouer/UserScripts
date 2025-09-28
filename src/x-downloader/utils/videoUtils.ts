@@ -104,7 +104,7 @@ function getBestVideoUrl(medias: any[]): string | undefined {
 /**
  * 从 Twitter API 响应中提取媒体
  */
-function extractMediaFromTweetData(tweetData: any): any[] {
+function extractMediaFromTweetData(tweetData: any, tweetId: string): any[] {
   try {
     const instructions = tweetData.data.threaded_conversation_with_injections_v2.instructions;
     const timelineAddEntries = instructions.find((i: any) => i.type === "TimelineAddEntries");
@@ -115,10 +115,11 @@ function extractMediaFromTweetData(tweetData: any): any[] {
 
     // 找到第一个包含媒体的条目
     for (const entry of timelineAddEntries.entries) {
-      const { content } = entry;
+      const { content, entryId } = entry;
       const { entryType, itemContent } = content;
 
       if (
+        entryId === `tweet-${tweetId}` &&
         entryType === "TimelineTimelineItem" &&
         itemContent?.itemType === "TimelineTweet" &&
         itemContent.tweet_results?.result?.legacy?.extended_entities?.media
@@ -199,7 +200,7 @@ export async function extractVideoUrl(tweetId: string): Promise<string | undefin
     const tweetData = await fetchTweetData(tweetId, csrfToken);
 
     // 提取媒体数据
-    const mediaArray = extractMediaFromTweetData(tweetData);
+    const mediaArray = extractMediaFromTweetData(tweetData, tweetId);
 
     // 获取最佳视频 URL
     const videoUrl = getBestVideoUrl(mediaArray);
