@@ -1,3 +1,11 @@
+# Get the list of files in the staging area
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
 npm run format
-git add .
+
+# Re-add only the files that were originally in the staging area
+if [ -n "$STAGED_FILES" ]; then
+  echo "$STAGED_FILES" | xargs git add
+fi
+
 npm run typecheck

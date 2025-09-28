@@ -1,5 +1,5 @@
 import { getCookie } from "../../shared/utils/cookie";
-import { message } from "../../shared";
+import { message, i18n } from "../../shared";
 
 interface TwitterApiHeaders extends Record<string, string> {
   accept: string;
@@ -44,7 +44,7 @@ function getTwitterHeaders(): TwitterApiHeaders | null {
   const cookies = document.cookie;
 
   if (!csrfToken || !cookies) {
-    console.debug("无法获取必要的认证信息");
+    console.debug("Unable to obtain necessary authentication information from cookies.");
     return null;
   }
 
@@ -65,7 +65,7 @@ export async function likeTweet(tweetId: string): Promise<{ success: boolean; me
   try {
     const headers = getTwitterHeaders();
     if (!headers) {
-      return { success: false, message: "无法获取认证信息" };
+      return { success: false, message: i18n.t("messages.cannotGetAuthInfo") };
     }
 
     const payload: LikeTweetPayload = {
@@ -82,7 +82,10 @@ export async function likeTweet(tweetId: string): Promise<{ success: boolean; me
     });
 
     if (!response.ok) {
-      return { success: false, message: `网络请求失败 (${response.status})` };
+      return {
+        success: false,
+        message: i18n.t("messages.networkRequestFailed", { status: response.status }),
+      };
     }
 
     const result: TwitterApiResponse = await response.json();
@@ -94,24 +97,24 @@ export async function likeTweet(tweetId: string): Promise<{ success: boolean; me
       const { code, name, message: errorMessage } = error || {};
 
       if (code === 139 && name === "AuthorizationError") {
-        console.debug(`📋 推文已点赞: ${tweetId}`);
-        message.info("推文已点赞");
+        console.debug(`📋 Tweets liked: ${tweetId}`);
+        message.info(i18n.t("messages.tweetAlreadyLiked"));
         return { success: true };
       }
 
       const errorMsg = errorMessage || "未知错误";
-      return { success: false, message: `点赞失败: ${errorMsg}` };
+      return { success: false, message: i18n.t("messages.likeFailed", { error: errorMsg }) };
     }
 
     if (data?.favorite_tweet === "Done") {
-      console.debug(`✅ 成功点赞推文: ${tweetId}`);
-      message.info("点赞成功");
+      console.debug(`✅ Successfully liked the tweet: ${tweetId}`);
+      message.info(i18n.t("messages.likeSuccess"));
       return { success: true };
     }
 
-    return { success: false, message: "点赞响应异常" };
+    return { success: false, message: i18n.t("messages.likeResponseError") };
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    return { success: false, message: `点赞失败: ${errorMsg}` };
+    return { success: false, message: i18n.t("messages.likeFailed", { error: errorMsg }) };
   }
 }

@@ -1,77 +1,81 @@
 import type { Locale, LocaleData } from "./types";
 
-const DEFAULT_LOCALE: Locale = "zh";
+const DEFAULT_LOCALE: Locale = "en";
+const STORAGE_KEY = "userscript-locale";
 
-class I18n {
-  private currentLocale: Locale = DEFAULT_LOCALE;
-  private translations: Record<Locale, LocaleData> = {} as Record<Locale, LocaleData>;
-  private listeners: Set<() => void> = new Set();
+let currentLocale: Locale = DEFAULT_LOCALE;
+let translations: Record<Locale, LocaleData> = {} as Record<Locale, LocaleData>;
+let listeners: Array<() => void> = [];
 
-  constructor() {
-    // 从构建时环境变量或浏览器语言检测默认语言
-    this.currentLocale = this.detectLocale();
-  }
+// 初始化语言检测
+const detectBrowserLocale = (): Locale =>
+  navigator?.language?.toLowerCase().startsWith("zh") ? "zh" : "en";
 
-  private detectLocale(): Locale {
-    return typeof navigator !== "undefined" && navigator.language.toLowerCase().startsWith("zh")
-      ? "zh"
-      : "en";
-  }
-
-  addTranslations(locale: Locale, translations: LocaleData): void {
-    this.translations[locale] = { ...this.translations[locale], ...translations };
-  }
-
-  setLocale(locale: Locale): void {
-    if (this.currentLocale !== locale) {
-      this.currentLocale = locale;
-      this.notifyListeners();
-    }
-  }
-
-  getLocale(): Locale {
-    return this.currentLocale;
-  }
-
-  t(key: string, fallback?: string): string {
-    const translation = this.getNestedValue(this.translations[this.currentLocale], key);
-
-    if (typeof translation === "string") {
-      return translation;
-    }
-
-    // 回退到默认语言
-    if (this.currentLocale !== DEFAULT_LOCALE) {
-      const defaultTranslation = this.getNestedValue(this.translations[DEFAULT_LOCALE], key);
-      if (typeof defaultTranslation === "string") {
-        return defaultTranslation;
-      }
-    }
-
-    // 返回 fallback 或 key 本身
-    return fallback || key;
-  }
-
-  private getNestedValue(
-    obj: LocaleData | undefined,
-    path: string,
-  ): string | LocaleData | undefined {
-    if (!obj) return undefined;
-
-    return path.split(".").reduce((current: any, key) => current?.[key], obj);
-  }
-
-  subscribe(callback: () => void): () => void {
-    this.listeners.add(callback);
-    return () => {
-      this.listeners.delete(callback);
-    };
-  }
-
-  private notifyListeners(): void {
-    this.listeners.forEach((callback) => callback());
-  }
+try {
+  currentLocale = (localStorage.getItem(STORAGE_KEY) as Locale | null) || detectBrowserLocale();
+} catch {
+  currentLocale = detectBrowserLocale();
 }
 
-// 创建全局单例实例
-export const i18n = new I18n();
+// 工具函数
+const getNestedValue = (obj: any, path: string): string | undefined => {
+  let result = obj;
+  for (const key of path.split(".")) {
+    result = result?.[key];
+    if (!result) return undefined;
+  }
+  return typeof result === "string" ? result : undefined;
+};
+
+const interpolate = (template: string, params?: Record<string, any>): string => {
+  if (!params) return template;
+  return template.replace(/\{(\w+)\}/g, (_, key) => params[key] ?? "{" + key + "}");
+};
+
+// 翻译函数
+function t(key: string, params?: Record<string, any>): string;
+function t(options: { key: string; params?: Record<string, any> }): string;
+function t(
+  keyOrOptions: string | { key: string; params?: Record<string, any> },
+  params?: Record<string, any>,
+): string {
+  const key = typeof keyOrOptions === "string" ? keyOrOptions : keyOrOptions.key;
+  const actualParams = typeof keyOrOptions === "string" ? params : keyOrOptions.params;
+
+  const text =
+    getNestedValue(translations[currentLocale], key) ||
+    getNestedValue(translations[DEFAULT_LOCALE], key) ||
+    key;
+
+  return interpolate(text, actualParams);
+}
+
+export const i18n = {
+  addTranslations(locale: Locale, data: LocaleData): void {
+    translations[locale] = Object.assign(translations[locale] || {}, data);
+  },
+
+  setLocale(locale: Locale): void {
+    if (currentLocale !== locale) {
+      currentLocale = locale;
+      try {
+        localStorage.setItem(STORAGE_KEY, locale);
+      } catch {}
+      listeners.forEach((callback) => callback());
+    }
+  },
+
+  getLocale(): Locale {
+    return currentLocale;
+  },
+
+  t,
+
+  subscribe(callback: () => void): () => void {
+    listeners.push(callback);
+    return () => {
+      const index = listeners.indexOf(callback);
+      if (index > -1) listeners.splice(index, 1);
+    };
+  },
+};

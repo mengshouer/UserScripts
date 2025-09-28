@@ -3,7 +3,7 @@ import { handleDownloadError } from "../utils";
 import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
 import { handleImageDownload } from "./ImageDownloadButton";
 import { handleVideoDownload } from "./VideoDownloadButton";
-import { styled, message } from "../../shared";
+import { styled, message, i18n } from "../../shared";
 import { IMAGE_SELECTOR, VIDEO_SELECTOR } from "..";
 
 interface UniversalDownloadButtonProps {
@@ -137,14 +137,18 @@ export function UniversalDownloadButton({ tweetContainer }: UniversalDownloadBut
   };
 
   const getTitle = () => {
-    if (isDownloading) return "下载中...";
+    if (isDownloading) return i18n.t("ui.downloading");
     const imageCount = tweetContainer.querySelectorAll(IMAGE_SELECTOR).length;
     const videoCount = tweetContainer.querySelectorAll(VIDEO_SELECTOR).length;
 
     if (mediaType === "image") {
-      return imageCount > 1 ? `下载 ${imageCount} 张图片` : "下载图片";
+      return imageCount > 1
+        ? i18n.t("ui.downloadImages", { count: imageCount })
+        : i18n.t("ui.downloadImage");
     }
-    return videoCount > 1 ? `下载 ${videoCount} 个视频` : "下载视频";
+    return videoCount > 1
+      ? i18n.t("ui.downloadVideos", { count: videoCount })
+      : i18n.t("ui.downloadVideo");
   };
 
   const handleDownload = async () => {
@@ -156,13 +160,13 @@ export function UniversalDownloadButton({ tweetContainer }: UniversalDownloadBut
       if (mediaType === "image") {
         await downloadImages(tweetContainer);
         const count = tweetContainer.querySelectorAll(IMAGE_SELECTOR).length;
-        message.success(`成功下载 ${count} 张图片`);
+        message.success(i18n.t("messages.imagesDownloadSuccess", { count }));
       } else if (mediaType === "video") {
         await downloadVideo(tweetContainer);
-        message.success("视频下载成功");
+        message.success(i18n.t("messages.videoDownloadSuccess"));
       }
     } catch (error) {
-      handleDownloadError(error, "下载失败");
+      handleDownloadError(error, i18n.t("messages.downloadFailed"));
     } finally {
       setIsDownloading(false);
     }

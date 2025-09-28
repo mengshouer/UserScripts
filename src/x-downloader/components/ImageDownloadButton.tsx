@@ -5,6 +5,7 @@ import {
   generateFileName,
   extractUrlInfo,
   message,
+  i18n,
 } from "../../shared";
 import type { DownloaderSettings } from "../../shared/types";
 import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
@@ -74,7 +75,7 @@ export const handleImageDownload = async ({
       }
     }
   } catch (error) {
-    handleDownloadError(error, "图片下载失败");
+    handleDownloadError(error, i18n.t("messages.imageDownloadFailed"));
   } finally {
     setIsDownloading(false);
   }
@@ -99,7 +100,7 @@ export function ImageDownloadButton({ targetImage }: ImageDownloadButtonProps) {
           settings,
         })
       }
-      title="下载原图"
+      title={i18n.t("ui.downloadImage")}
       style={{ bottom: "8px", right: "8px" }}
     />
   );

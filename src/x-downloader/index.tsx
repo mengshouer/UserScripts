@@ -2,7 +2,7 @@
 // @name         X(Twitter) Downloader
 // @name:zh-CN   X（Twitter）下载器
 // @author       mengshouer
-// @version      0.8
+// @version      0.9
 // @description  Add a download button to the media.
 // @include      *://twitter.com/*
 // @include      *://*.twitter.com/*

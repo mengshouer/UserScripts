@@ -1,5 +1,5 @@
 import { useState } from "preact/hooks";
-import { downloadFile, generateFileName, message } from "../../shared";
+import { downloadFile, generateFileName, message, i18n } from "../../shared";
 import type { DownloaderSettings } from "../../shared/types";
 import {
   extractVideoUrl,
@@ -36,14 +36,14 @@ export const handleVideoDownload = async ({
     const username = getUserIdFromTweetContainer(tweetContainer);
     const tweetId = getTweetIdFromElement(tweetContainer, username);
     if (!tweetId) {
-      message.error("无法识别推文，请重试");
+      message.error(i18n.t("messages.cannotRecognizeTweet"));
       return;
     }
 
     const videoUrl =
       src && src.startsWith("https://video.twimg.com") ? src : await extractVideoUrl(tweetId);
     if (!videoUrl) {
-      message.error("未找到视频下载链接");
+      message.error(i18n.t("messages.videoLinkNotFound"));
       return;
     }
 
@@ -64,7 +64,7 @@ export const handleVideoDownload = async ({
       }
     }
   } catch (error) {
-    handleDownloadError(error, "视频下载失败");
+    handleDownloadError(error, i18n.t("messages.videoDownloadFailed"));
   } finally {
     setIsDownloading(false);
   }
@@ -93,7 +93,7 @@ export function VideoDownloadButton({ src, tweetContainer }: VideoDownloadButton
           setIsDownloading(false);
         });
       }}
-      title={isDownloading ? "下载中..." : "下载视频"}
+      title={isDownloading ? i18n.t("ui.downloading") : i18n.t("ui.downloadVideo")}
       isDownloading={isDownloading}
       style={{ bottom: "70px", right: "8px" }}
     />
