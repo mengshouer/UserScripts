@@ -13,6 +13,15 @@ export const enTranslations: LocaleData = {
     warning: "Warning",
     info: "Info",
     language: "Language",
+    messagePlacement: {
+      label: "Message Placement",
+      top: "Top Center",
+      bottom: "Bottom Center",
+      topLeft: "Top Left",
+      topRight: "Top Right",
+      bottomLeft: "Bottom Left",
+      bottomRight: "Bottom Right",
+    },
   },
   button: {
     download: "Download",

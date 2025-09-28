@@ -1,5 +1,13 @@
 import { useState } from "preact/hooks";
-import { Modal, Button, Input, Checkbox, LanguageSelector, useTheme } from "../../shared";
+import {
+  Modal,
+  Button,
+  Input,
+  Checkbox,
+  LanguageSelector,
+  MessagePlacementSelector,
+  useTheme,
+} from "../../shared";
 import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
 import { useI18n } from "../i18n";
 
@@ -55,9 +63,16 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             padding: "8px 0",
             borderTop: `1px solid ${theme.borderColor}`,
             borderBottom: `1px solid ${theme.borderColor}`,
+            gap: "16px",
           }}
         >
-          <LanguageSelector />
+          <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+            <LanguageSelector />
+            <MessagePlacementSelector
+              value={settings.messagePlacement}
+              onChange={(placement) => setSetting("messagePlacement", placement)}
+            />
+          </div>
           <Button
             variant="secondary"
             onClick={() => {

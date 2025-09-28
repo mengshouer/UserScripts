@@ -8,6 +8,7 @@ const DEFAULT_SETTINGS: DownloaderSettings = {
   showVideoDownloadButton: false,
   showUniversalDownloadButton: true,
   autoLikeOnDownload: false,
+  messagePlacement: "top",
 };
 
 const STORAGE_KEY = "x-downloader-settings";

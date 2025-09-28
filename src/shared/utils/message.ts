@@ -1,90 +1,124 @@
 import { render, h } from "preact";
 import { Message } from "../components/Message";
 
+type MessagePlacement =
+  | "top"
+  | "bottom"
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right";
+
+const getUserMessagePlacement = (): MessagePlacement => {
+  try {
+    const settings = JSON.parse(localStorage.getItem("x-downloader-settings") || "{}");
+    return settings.messagePlacement || "top";
+  } catch {
+    return "top";
+  }
+};
+
 interface MessageConfig {
   type?: "success" | "error" | "warning" | "info";
   content: string;
   duration?: number;
+  placement?: MessagePlacement;
 }
 
-class MessageService {
-  private container: HTMLElement | null = null;
-  private messageCount = 0;
+// 模块级状态
+const containers = new Map<MessagePlacement, HTMLElement>();
+let messageCount = 0;
 
-  private getContainer(): HTMLElement {
-    if (!this.container) {
-      this.container = document.createElement("div");
-      this.container.id = "userscript-message-container";
-      this.container.style.cssText = `
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 9999;
-        pointer-events: none;
-      `;
-      document.body.appendChild(this.container);
-    }
-    return this.container;
+const getPositionStyle = (placement: MessagePlacement): string => {
+  const [vertical, horizontal] = placement.split("-") as ["top" | "bottom", string?];
+  const isBottom = vertical === "bottom";
+  const direction = isBottom ? "column-reverse" : "column";
+
+  let position = `${vertical}: 20px; display: flex; flex-direction: ${direction};`;
+
+  if (horizontal) {
+    position += ` ${horizontal}: 20px;`;
+  } else {
+    position += " left: 50%; transform: translateX(-50%);";
   }
 
-  private show(config: MessageConfig) {
-    const container = this.getContainer();
-    const messageId = `userscript-message-${++this.messageCount}`;
-    const messageElement = document.createElement("div");
-    messageElement.id = messageId;
-    messageElement.style.cssText = `
-      position: relative;
-      margin-bottom: 8px;
-      pointer-events: auto;
-      animation: messageSlideIn 0.3s ease-out;
+  return position;
+};
+
+const getContainer = (placement: MessagePlacement = "top"): HTMLElement => {
+  if (!containers.has(placement)) {
+    const container = document.createElement("div");
+    container.id = `userscript-message-container-${placement}`;
+    container.style.cssText = `
+      position: fixed;
+      z-index: 9999;
+      pointer-events: none;
+      ${getPositionStyle(placement)}
     `;
-
-    container.appendChild(messageElement);
-
-    const onClose = () => {
-      if (messageElement.parentNode) {
-        messageElement.style.animation = "messageSlideOut 0.3s ease-in forwards";
-        setTimeout(() => {
-          if (messageElement.parentNode) {
-            messageElement.parentNode.removeChild(messageElement);
-          }
-        }, 300);
-      }
-    };
-
-    render(h(Message, { ...config, onClose }), messageElement);
-
-    return onClose;
+    document.body.appendChild(container);
+    containers.set(placement, container);
   }
+  return containers.get(placement)!;
+};
 
-  success(content: string, duration?: number) {
-    return this.show({ type: "success", content, ...(duration !== undefined && { duration }) });
-  }
+const show = (config: MessageConfig) => {
+  const placement = config.placement || "top";
+  const container = getContainer(placement);
+  const messageId = `userscript-message-${++messageCount}`;
+  const messageElement = document.createElement("div");
+  messageElement.id = messageId;
+  const isBottom = placement.startsWith("bottom");
+  messageElement.style.cssText = `
+    position: relative;
+    margin-bottom: 8px;
+    pointer-events: auto;
+    animation: ${isBottom ? "messageSlideInBottom" : "messageSlideIn"} 0.3s ease-out;
+  `;
 
-  error(content: string, duration?: number) {
-    return this.show({ type: "error", content, ...(duration !== undefined && { duration }) });
-  }
+  container.appendChild(messageElement);
 
-  warning(content: string, duration?: number) {
-    return this.show({ type: "warning", content, ...(duration !== undefined && { duration }) });
-  }
-
-  info(content: string, duration?: number) {
-    return this.show({ type: "info", content, ...(duration !== undefined && { duration }) });
-  }
-
-  destroy() {
-    if (this.container && this.container.parentNode) {
-      this.container.parentNode.removeChild(this.container);
-      this.container = null;
+  const onClose = () => {
+    if (messageElement.parentNode) {
+      const isBottom = placement.startsWith("bottom");
+      messageElement.style.animation = `${isBottom ? "messageSlideOutBottom" : "messageSlideOut"} 0.3s ease-in forwards`;
+      setTimeout(() => {
+        if (messageElement.parentNode) {
+          messageElement.parentNode.removeChild(messageElement);
+        }
+      }, 300);
     }
-  }
-}
+  };
 
-export const message = new MessageService();
+  render(h(Message, { ...config, onClose }), messageElement);
+  return onClose;
+};
 
-// 添加退出动画的CSS
+const createMessageMethod =
+  (type: "success" | "error" | "warning" | "info") =>
+  (content: string, duration?: number, placement?: MessagePlacement) =>
+    show({
+      type,
+      content,
+      placement: placement || getUserMessagePlacement(),
+      ...(duration !== undefined && { duration }),
+    });
+
+const success = createMessageMethod("success");
+const error = createMessageMethod("error");
+const warning = createMessageMethod("warning");
+const info = createMessageMethod("info");
+
+const destroy = () => {
+  containers.forEach((container) => {
+    if (container.parentNode) {
+      container.parentNode.removeChild(container);
+    }
+  });
+  containers.clear();
+};
+
+export const message = { success, error, warning, info, destroy };
+
 const style = document.createElement("style");
 style.textContent = `
   @keyframes messageSlideOut {
@@ -95,6 +129,28 @@ style.textContent = `
     to {
       transform: translateY(-100%);
       opacity: 0;
+    }
+  }
+
+  @keyframes messageSlideOutBottom {
+    from {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+  }
+
+  @keyframes messageSlideInBottom {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
     }
   }
 `;

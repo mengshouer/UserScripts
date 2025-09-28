@@ -34,23 +34,24 @@ const MessageContainer = styled("div")`
   }
 
   &.message-success {
-    background-color: rgba(34, 197, 94, 0.4);
-    border: 1px solid rgba(34, 197, 94, 0.7);
+    --msg-color: 34, 197, 94;
   }
 
   &.message-error {
-    background-color: rgba(239, 68, 68, 0.4);
-    border: 1px solid rgba(239, 68, 68, 0.7);
+    --msg-color: 239, 68, 68;
   }
 
   &.message-warning {
-    background-color: rgba(245, 158, 11, 0.4);
-    border: 1px solid rgba(245, 158, 11, 0.7);
+    --msg-color: 245, 158, 11;
   }
 
   &.message-info {
-    background-color: rgba(59, 130, 246, 0.4);
-    border: 1px solid rgba(59, 130, 246, 0.7);
+    --msg-color: 59, 130, 246;
+  }
+
+  &[class*="message-"] {
+    background-color: rgba(var(--msg-color), 0.4);
+    border: 1px solid rgba(var(--msg-color), 0.7);
   }
 `;
 
@@ -123,9 +124,9 @@ export function Message({
     <MessageContainer
       className={`message-${type} ${className || ""}`}
       style={style}
-      onClick={() => onClose?.()}
-      onMouseEnter={() => pauseTimer()}
-      onMouseLeave={() => resumeTimer()}
+      onClick={onClose}
+      onMouseEnter={pauseTimer}
+      onMouseLeave={resumeTimer}
     >
       {content}
       <CloseIcon>×</CloseIcon>

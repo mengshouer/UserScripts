@@ -78,7 +78,6 @@ export function Button({
 }: ButtonProps) {
   const { theme } = useTheme();
 
-  // 缓存计算结果以避免重复计算
   const variantStyles = (() => {
     const variantConfig = buttonVariants[variant];
     return typeof variantConfig === "function" ? variantConfig(theme) : variantConfig;

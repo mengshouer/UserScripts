@@ -20,4 +20,5 @@ export { Modal } from "./components/Modal";
 export { Input } from "./components/Input";
 export { Checkbox } from "./components/Checkbox";
 export { LanguageSelector } from "./components/LanguageSelector";
+export { MessagePlacementSelector } from "./components/MessagePlacementSelector";
 export { Select } from "./components/Select";

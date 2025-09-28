@@ -19,10 +19,6 @@ export function LanguageSelector({ className, style }: LanguageSelectorProps) {
     { value: "en", label: "English" },
   ];
 
-  const handleLanguageChange = (value: string) => {
-    setLocale(value as Locale);
-  };
-
   return (
     <div
       className={className}
@@ -38,7 +34,7 @@ export function LanguageSelector({ className, style }: LanguageSelectorProps) {
       >
         {t("common.language")}:
       </label>
-      <Select value={locale} options={languages} onChange={handleLanguageChange} />
+      <Select value={locale} options={languages} onChange={(value) => setLocale(value as Locale)} />
     </div>
   );
 }

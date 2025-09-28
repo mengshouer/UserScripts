@@ -55,6 +55,13 @@ export interface DownloaderSettings extends BaseSettings {
   readonly showVideoDownloadButton: boolean;
   readonly showUniversalDownloadButton: boolean;
   readonly autoLikeOnDownload: boolean;
+  readonly messagePlacement:
+    | "top"
+    | "bottom"
+    | "top-left"
+    | "top-right"
+    | "bottom-left"
+    | "bottom-right";
 }
 
 // === 组件通用类型 ===
