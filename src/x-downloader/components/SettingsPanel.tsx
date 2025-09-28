@@ -1,3 +1,4 @@
+import { useState } from "preact/hooks";
 import { Modal, Button, Input, Checkbox, LanguageSelector, useTheme } from "../../shared";
 import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
 import { useI18n } from "../i18n";
@@ -11,6 +12,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const { theme, isDark } = useTheme();
   const { settings, setSetting, resetSettings } = useDownloaderSettings();
   const { t } = useI18n();
+  const [resetKey, setResetKey] = useState(0);
 
   const sectionTitleStyle = {
     fontSize: "16px",
@@ -42,7 +44,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={t("title")}>
-      <div>
+      <div key={resetKey}>
         {/* 语言设置和重置按钮 */}
         <div
           style={{
@@ -60,6 +62,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             variant="secondary"
             onClick={() => {
               resetSettings();
+              setResetKey((prev) => prev + 1);
             }}
           >
             {t("settings.reset")}
