@@ -21,6 +21,7 @@ interface ImageDownloadOptions {
   targetImage: HTMLImageElement;
   settings: DownloaderSettings;
   skipAutoLike?: boolean;
+  imageIndex?: number;
 }
 
 /**
@@ -42,25 +43,29 @@ export const handleImageDownload = async ({
   targetImage,
   settings,
   skipAutoLike = false,
+  imageIndex,
 }: ImageDownloadOptions) => {
   setIsDownloading(true);
   const { picname, ext } = extractFileInfo(targetImage.src);
   let urlInfo;
 
-  if (document.location.href.includes("photo")) {
-    urlInfo = extractUrlInfo(document.location.href);
+  if (window.location.href.includes("photo")) {
+    urlInfo = extractUrlInfo(window.location.href);
   } else {
     const firstA = findFirstAnchor(targetImage);
     if (!firstA) return;
     urlInfo = extractUrlInfo(firstA.href);
   }
 
+  // 优先使用传入的 imageIndex，否则使用 URL 中解析的 picno
+  const picNo = imageIndex ? imageIndex : parseInt(urlInfo.picno) - 1;
+
   const filename = generateFileName(settings.fileName, {
     Userid: urlInfo.userid,
     Tid: urlInfo.tid,
-    Time: Date.now().toString(),
+    Time: `${Date.now()}`,
     PicName: picname,
-    PicNo: (parseInt(urlInfo.picno) - 1).toString(),
+    PicNo: `${picNo}`,
   });
 
   const downloadUrl = `https://pbs.twimg.com/media/${picname}?format=${ext}&name=orig`;
@@ -86,9 +91,7 @@ export function ImageDownloadButton({ targetImage }: ImageDownloadButtonProps) {
   const [isDownloading, setIsDownloading] = useState(false);
 
   // 如果设置禁用了显示按钮，返回 null
-  if (!settings.showDownloadButton) {
-    return null;
-  }
+  if (!settings.showDownloadButton) return null;
 
   return (
     <DownloadButton

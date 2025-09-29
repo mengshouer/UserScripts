@@ -52,7 +52,7 @@ export const handleVideoDownload = async ({
     const filename = generateFileName(settings.videoFileName, {
       Userid: urlInfo.userid || "unknown",
       Tid: urlInfo.tid,
-      Time: Date.now().toString(),
+      Time: `${Date.now()}`,
     });
 
     await downloadFile(videoUrl, `${filename}.mp4`);

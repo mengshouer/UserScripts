@@ -62,7 +62,14 @@ const ensureRelativePosition = (element: HTMLElement) => {
 function setupUniversalDownloadButton(tweetElement: HTMLElement): void {
   if (processedTweets.has(tweetElement)) return;
 
-  const actionGroup = tweetElement.querySelector('div[role="group"]');
+  // 查找包含likes信息的action group
+  const actionGroup = Array.from(tweetElement.querySelectorAll('div[role="group"]')).find(
+    (group) => {
+      const ariaLabel = group.getAttribute("aria-label");
+      return ariaLabel && ariaLabel.includes("likes");
+    },
+  ) as HTMLElement;
+
   if (!actionGroup) return;
 
   // 创建并添加按钮容器
