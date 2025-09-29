@@ -72,6 +72,76 @@ export function getTweetIdFromElement(element: HTMLElement, username = ""): stri
 }
 
 /**
+ * 检查元素是否在引用推文内
+ *
+ * @param element - 要检查的DOM元素
+ * @returns 如果在引用推文内返回true，否则返回false
+ */
+export function isInsideQuoteTweet(element: HTMLElement): boolean {
+  // 查找role="link"祖先容器，检查是否包含time元素
+  const roleLink = element.closest('[role="link"]');
+  if (roleLink && roleLink.querySelector("time")) {
+    return true;
+  }
+
+  // 查找特定ID模式祖先容器，检查是否包含time元素
+  const idContainer = element.closest('[id^="id"]:not([aria-labelledby])');
+  if (idContainer && idContainer.querySelector("time")) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * 检查推文容器是否有可下载的图片（排除引用推文中的图片）
+ *
+ * @param tweetContainer - 推文容器元素
+ * @returns 如果有可下载的图片返回true
+ */
+export function tweetHasDownloadableImages(tweetContainer: HTMLElement): boolean {
+  const images = tweetContainer.querySelectorAll('img[src^="https://pbs.twimg.com/media/"]');
+  return Array.from(images).some((img) => !isInsideQuoteTweet(img as HTMLElement));
+}
+
+/**
+ * 检查推文容器是否有可下载的视频（排除引用推文中的视频）
+ *
+ * @param tweetContainer - 推文容器元素
+ * @returns 如果有可下载的视频返回true
+ */
+export function tweetHasDownloadableVideos(tweetContainer: HTMLElement): boolean {
+  const videos = tweetContainer.querySelectorAll("video");
+  return Array.from(videos).some((video) => !isInsideQuoteTweet(video as HTMLElement));
+}
+
+/**
+ * 获取推文中可下载的图片（排除引用推文中的图片）
+ *
+ * @param tweetContainer - 推文容器元素
+ * @returns 可下载的图片元素数组
+ */
+export function getDownloadableImages(tweetContainer: HTMLElement): HTMLImageElement[] {
+  const images = tweetContainer.querySelectorAll('img[src^="https://pbs.twimg.com/media/"]');
+  return Array.from(images).filter(
+    (img) => !isInsideQuoteTweet(img as HTMLElement),
+  ) as HTMLImageElement[];
+}
+
+/**
+ * 获取推文中可下载的视频（排除引用推文中的视频）
+ *
+ * @param tweetContainer - 推文容器元素
+ * @returns 可下载的视频元素数组
+ */
+export function getDownloadableVideos(tweetContainer: HTMLElement): HTMLVideoElement[] {
+  const videos = tweetContainer.querySelectorAll("video");
+  return Array.from(videos).filter(
+    (video) => !isInsideQuoteTweet(video as HTMLElement),
+  ) as HTMLVideoElement[];
+}
+
+/**
  * 从 Tweet 容器中获取用户名
  * 优先通过 data-testid="User-Name" 获取，失败则通过 status 链接兜底
  */

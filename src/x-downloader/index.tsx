@@ -2,7 +2,7 @@
 // @name         X(Twitter) Downloader
 // @name:zh-CN   X（Twitter）下载器
 // @author       mengshouer
-// @version      1.0.0
+// @version      1.0.1
 // @description  Add a download button to the media.
 // @include      *://twitter.com/*
 // @include      *://*.twitter.com/*
@@ -19,7 +19,7 @@ import { ImageDownloadButton } from "./components/ImageDownloadButton";
 import { VideoDownloadButton } from "./components/VideoDownloadButton";
 import { UniversalDownloadButton } from "./components/UniversalDownloadButton";
 import { findVideoContainer, findVideoPlayerContainer } from "./utils/videoUtils";
-import { findTweetContainer } from "./utils";
+import { findTweetContainer, isInsideQuoteTweet } from "./utils";
 
 export const IMAGE_SELECTOR = 'img[src^="https://pbs.twimg.com/media/"]';
 export const VIDEO_SELECTOR = "video";
@@ -116,6 +116,11 @@ function setupImageInteraction(img: HTMLImageElement): void {
 
 function setupVideoInteraction(video: HTMLVideoElement): void {
   if (processedVideos.has(video)) return;
+
+  // 检查是否在引用推文内，如果是则跳过处理
+  if (isInsideQuoteTweet(video)) {
+    return;
+  }
 
   const tweetContainer = findTweetContainer(video);
   if (!tweetContainer) return;

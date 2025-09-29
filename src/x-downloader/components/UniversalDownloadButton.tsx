@@ -3,7 +3,13 @@ import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
 import { handleImageDownload } from "./ImageDownloadButton";
 import { handleVideoDownload } from "./VideoDownloadButton";
 import { styled, message, i18n } from "../../shared";
-import { IMAGE_SELECTOR, VIDEO_SELECTOR } from "..";
+import { IMAGE_SELECTOR } from "..";
+import {
+  tweetHasDownloadableImages,
+  tweetHasDownloadableVideos,
+  getDownloadableImages,
+  getDownloadableVideos,
+} from "../utils";
 
 interface UniversalDownloadButtonProps {
   tweetContainer: HTMLElement;
@@ -45,21 +51,16 @@ export function UniversalDownloadButton({ tweetContainer }: UniversalDownloadBut
   const [mediaType, setMediaType] = useState<"image" | "video" | "none">("none");
   const url = window.location.href;
 
-  // 检测Tweet中的媒体类型
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     const detectMediaType = () => {
-      // 检查是否有图片
-      const images = tweetContainer.querySelectorAll(IMAGE_SELECTOR);
-      if (images.length > 0) {
+      if (tweetHasDownloadableImages(tweetContainer)) {
         setMediaType("image");
         return;
       }
 
-      // 检查是否有视频
-      const videos = tweetContainer.querySelectorAll(VIDEO_SELECTOR);
-      if (videos.length > 0) {
+      if (tweetHasDownloadableVideos(tweetContainer)) {
         setMediaType("video");
         return;
       }
@@ -129,10 +130,10 @@ export function UniversalDownloadButton({ tweetContainer }: UniversalDownloadBut
       throw new Error("Image not found in preview mode");
     }
 
-    // 非预览模式，下载所有图片
-    const images = container.querySelectorAll(IMAGE_SELECTOR) as NodeListOf<HTMLImageElement>;
+    // 非预览模式，下载所有可下载的图片
+    const images = getDownloadableImages(container);
 
-    const downloadPromises = Array.from(images).map((img, index) => {
+    const downloadPromises = images.map((img, index) => {
       if (!img) return Promise.resolve();
       return handleImageDownload({
         setIsDownloading: nopSetDownloading,
@@ -159,12 +160,15 @@ export function UniversalDownloadButton({ tweetContainer }: UniversalDownloadBut
   };
 
   const downloadVideo = async (container: HTMLElement) => {
-    const video = container.querySelector(VIDEO_SELECTOR) as HTMLVideoElement | null;
+    // 获取第一个可下载的视频
+    const videos = getDownloadableVideos(container);
+    const video = videos[0];
+
     if (!video) return;
 
     handleVideoDownload({
       setIsDownloading: nopSetDownloading,
-      src: video?.src,
+      src: video.src,
       tweetContainer: container,
       settings,
     }).then(() => message.success(i18n.t("messages.videoDownloadSuccess")));
@@ -172,8 +176,10 @@ export function UniversalDownloadButton({ tweetContainer }: UniversalDownloadBut
 
   const getTitle = () => {
     if (isDownloading) return i18n.t("ui.downloading");
-    let imageCount = tweetContainer.querySelectorAll(IMAGE_SELECTOR).length;
-    let videoCount = tweetContainer.querySelectorAll(VIDEO_SELECTOR).length;
+
+    // 获取可下载的媒体数量
+    let imageCount = getDownloadableImages(tweetContainer).length;
+    let videoCount = getDownloadableVideos(tweetContainer).length;
 
     // 预览模式下，始终显示单个媒体
     if (["/photo/", "/video/"].some((segment) => url.includes(segment))) {
