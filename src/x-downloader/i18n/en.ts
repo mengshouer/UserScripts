@@ -23,7 +23,8 @@ export const enTranslations: LocaleData = {
       showButtonHelp:
         "Display unified download button in tweet actions, automatically detects media type",
       autoLike: "Auto-like on download",
-      autoLikeHelp: "Automatically like the tweet when downloading images or videos",
+      autoLikeHelp:
+        "Automatically like the tweet when downloading images or videos (UI won't update automatically)",
     },
     reset: "Reset to default settings",
   },

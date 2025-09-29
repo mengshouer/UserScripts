@@ -4,8 +4,8 @@ const DEFAULT_LOCALE: Locale = "en";
 const STORAGE_KEY = "userscript-locale";
 
 let currentLocale: Locale = DEFAULT_LOCALE;
-let translations: Record<Locale, LocaleData> = {} as Record<Locale, LocaleData>;
-let listeners: Array<() => void> = [];
+const translations: Record<Locale, LocaleData> = {} as Record<Locale, LocaleData>;
+const listeners: Array<() => void> = [];
 
 // 初始化语言检测
 const detectBrowserLocale = (): Locale =>

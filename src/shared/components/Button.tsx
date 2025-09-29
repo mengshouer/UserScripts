@@ -7,7 +7,6 @@ const StyledButton = styled("button")`
   border-radius: 6px;
   font-weight: 500;
   outline: none;
-  transition: all 0.2s ease;
   border: none;
   cursor: var(--cursor);
   opacity: var(--opacity);
@@ -20,12 +19,6 @@ const StyledButton = styled("button")`
   background: var(--bg);
   color: var(--color);
   border: var(--border);
-
-  /* Hover effects */
-  &:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
 `;
 
 type ButtonVariantStyle = Record<string, string>;

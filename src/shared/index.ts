@@ -16,9 +16,11 @@ export * from "./i18n";
 
 // 组件
 export { Button } from "./components/Button";
-export { Modal } from "./components/Modal";
-export { Input } from "./components/Input";
 export { Checkbox } from "./components/Checkbox";
+export { Input } from "./components/Input";
 export { LanguageSelector } from "./components/LanguageSelector";
+export { Message } from "./components/Message";
 export { MessagePlacementSelector } from "./components/MessagePlacementSelector";
+export { Modal } from "./components/Modal";
 export { Select } from "./components/Select";
+export { SettingsCard } from "./components/SettingsCard";

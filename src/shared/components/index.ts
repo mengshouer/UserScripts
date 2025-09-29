@@ -6,3 +6,4 @@ export { Message } from "./Message";
 export { MessagePlacementSelector } from "./MessagePlacementSelector";
 export { Modal } from "./Modal";
 export { Select } from "./Select";
+export { SettingsCard } from "./SettingsCard";

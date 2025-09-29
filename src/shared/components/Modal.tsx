@@ -21,12 +21,18 @@ const ModalContainer = styled("div")`
   color: var(--modal-text);
   border-radius: 12px;
   padding: 24px;
-  width: 480px;
+  min-width: 480px;
+  width: auto;
   max-width: 90vw;
   max-height: 80vh;
   overflow-y: auto;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  @media (max-width: 640px) {
+    min-width: auto;
+    width: 90vw;
+  }
 `;
 
 export function Modal({

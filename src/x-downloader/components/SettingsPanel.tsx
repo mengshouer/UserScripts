@@ -6,6 +6,7 @@ import {
   Checkbox,
   LanguageSelector,
   MessagePlacementSelector,
+  SettingsCard,
   useTheme,
 } from "../../shared";
 import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
@@ -17,56 +18,58 @@ interface SettingsPanelProps {
 }
 
 export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
-  const { theme, isDark } = useTheme();
   const { settings, setSetting, resetSettings } = useDownloaderSettings();
   const { t } = useI18n();
+  const { theme, isDark } = useTheme();
   const [resetKey, setResetKey] = useState(0);
 
-  const sectionTitleStyle = {
-    fontSize: "16px",
-    fontWeight: 600,
-    color: theme.textColor,
-    marginBottom: "12px",
-    marginTop: "20px",
-    padding: "8px 12px",
-    backgroundColor: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.03)",
-    borderRadius: "4px",
+  const toolbarStyle = {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    flexWrap: "wrap" as const,
+    gap: "16px",
+    padding: "16px",
+    marginBottom: "20px",
+    background: isDark ? "rgba(255, 255, 255, 0.02)" : "rgba(0, 0, 0, 0.01)",
+    border: `1px solid ${theme.borderColor}`,
+    borderRadius: "8px",
   };
 
-  const fieldContainerStyle = {
-    marginBottom: "16px",
+  const fieldStyle = {
+    marginBottom: "20px",
   };
 
   const labelStyle = {
     display: "block",
-    marginBottom: "6px",
+    marginBottom: "8px",
     fontWeight: 500,
+    fontSize: "14px",
     color: theme.textColor,
   };
 
   const helpTextStyle = {
-    marginTop: "4px",
+    marginTop: "6px",
     fontSize: "12px",
     color: theme.secondaryTextColor,
+    paddingLeft: "24px",
   };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={t("title")}>
       <div key={resetKey}>
-        {/* 语言设置和重置按钮 */}
-        <div
-          style={{
-            height: "max-content",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "8px 0",
-            borderTop: `1px solid ${theme.borderColor}`,
-            borderBottom: `1px solid ${theme.borderColor}`,
-            gap: "16px",
-          }}
-        >
-          <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+        {/* 顶部工具栏 */}
+        <div style={toolbarStyle}>
+          <div
+            style={{
+              display: "flex",
+              gap: "12px",
+              alignItems: "center",
+              flexWrap: "wrap",
+              flex: "1",
+              minWidth: "0",
+            }}
+          >
             <LanguageSelector />
             <MessagePlacementSelector
               value={settings.messagePlacement}
@@ -75,6 +78,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           </div>
           <Button
             variant="secondary"
+            style={{ flexShrink: 0 }}
             onClick={() => {
               resetSettings();
               setResetKey((prev) => prev + 1);
@@ -84,72 +88,72 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           </Button>
         </div>
 
-        {/* 图片下载设置 */}
-        <div style={sectionTitleStyle}>{t("settings.image.title")}</div>
+        {/* 图片下载设置卡片 */}
+        <SettingsCard title={t("settings.image.title")}>
+          <div style={fieldStyle}>
+            <label style={labelStyle}>{t("settings.image.fileName")}</label>
+            <Input
+              value={settings.fileName}
+              onChange={(value) => setSetting("fileName", value)}
+              placeholder={t("settings.image.fileNamePlaceholder")}
+            />
+            <div style={{ marginTop: "6px", fontSize: "12px", color: theme.secondaryTextColor }}>
+              {t("settings.image.fileNameHelp")}
+            </div>
+          </div>
 
-        <div style={fieldContainerStyle}>
-          <label style={labelStyle}>{t("settings.image.fileName")}</label>
-          <Input
-            value={settings.fileName}
-            onChange={(value) => setSetting("fileName", value)}
-            placeholder={t("settings.image.fileNamePlaceholder")}
-          />
-          <div style={helpTextStyle}>{t("settings.image.fileNameHelp")}</div>
-        </div>
-
-        <div style={fieldContainerStyle}>
           <Checkbox
             checked={settings.showDownloadButton}
             onChange={(checked) => setSetting("showDownloadButton", checked)}
           >
             {t("settings.image.showButton")}
           </Checkbox>
-        </div>
+        </SettingsCard>
 
-        {/* 视频下载设置 */}
-        <div style={sectionTitleStyle}>{t("settings.video.title")}</div>
+        {/* 视频下载设置卡片 */}
+        <SettingsCard title={t("settings.video.title")}>
+          <div style={fieldStyle}>
+            <label style={labelStyle}>{t("settings.video.fileName")}</label>
+            <Input
+              value={settings.videoFileName}
+              onChange={(value) => setSetting("videoFileName", value)}
+              placeholder={t("settings.video.fileNamePlaceholder")}
+            />
+            <div style={{ marginTop: "6px", fontSize: "12px", color: theme.secondaryTextColor }}>
+              {t("settings.video.fileNameHelp")}
+            </div>
+          </div>
 
-        <div style={fieldContainerStyle}>
-          <label style={labelStyle}>{t("settings.video.fileName")}</label>
-          <Input
-            value={settings.videoFileName}
-            onChange={(value) => setSetting("videoFileName", value)}
-            placeholder={t("settings.video.fileNamePlaceholder")}
-          />
-          <div style={helpTextStyle}>{t("settings.video.fileNameHelp")}</div>
-        </div>
-
-        <div style={fieldContainerStyle}>
           <Checkbox
             checked={settings.showVideoDownloadButton}
             onChange={(checked) => setSetting("showVideoDownloadButton", checked)}
           >
             {t("settings.video.showButton")}
           </Checkbox>
-        </div>
+        </SettingsCard>
 
-        {/* 通用下载设置 */}
-        <div style={sectionTitleStyle}>{t("settings.universal.title")}</div>
+        {/* 通用下载设置卡片 */}
+        <SettingsCard title={t("settings.universal.title")}>
+          <div>
+            <Checkbox
+              checked={settings.showUniversalDownloadButton}
+              onChange={(checked) => setSetting("showUniversalDownloadButton", checked)}
+            >
+              {t("settings.universal.showButton")}
+            </Checkbox>
+            <div style={helpTextStyle}>{t("settings.universal.showButtonHelp")}</div>
+          </div>
 
-        <div style={fieldContainerStyle}>
-          <Checkbox
-            checked={settings.showUniversalDownloadButton}
-            onChange={(checked) => setSetting("showUniversalDownloadButton", checked)}
-          >
-            {t("settings.universal.showButton")}
-          </Checkbox>
-          <div style={helpTextStyle}>{t("settings.universal.showButtonHelp")}</div>
-        </div>
-
-        <div style={fieldContainerStyle}>
-          <Checkbox
-            checked={settings.autoLikeOnDownload}
-            onChange={(checked) => setSetting("autoLikeOnDownload", checked)}
-          >
-            {t("settings.universal.autoLike")}
-          </Checkbox>
-          <div style={helpTextStyle}>{t("settings.universal.autoLikeHelp")}</div>
-        </div>
+          <div style={{ marginTop: "16px" }}>
+            <Checkbox
+              checked={settings.autoLikeOnDownload}
+              onChange={(checked) => setSetting("autoLikeOnDownload", checked)}
+            >
+              {t("settings.universal.autoLike")}
+            </Checkbox>
+            <div style={helpTextStyle}>{t("settings.universal.autoLikeHelp")}</div>
+          </div>
+        </SettingsCard>
       </div>
     </Modal>
   );

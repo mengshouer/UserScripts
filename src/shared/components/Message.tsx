@@ -22,17 +22,6 @@ const MessageContainer = styled("div")`
   cursor: pointer;
   color: #fff;
 
-  @keyframes messageSlideIn {
-    from {
-      transform: translateY(-100%);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
-
   &.message-success {
     --msg-color: 34, 197, 94;
   }

@@ -121,6 +121,17 @@ export const message = { success, error, warning, info, destroy };
 
 const style = document.createElement("style");
 style.textContent = `
+  @keyframes messageSlideIn {
+    from {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
   @keyframes messageSlideOut {
     from {
       transform: translateY(0);
@@ -128,17 +139,6 @@ style.textContent = `
     }
     to {
       transform: translateY(-100%);
-      opacity: 0;
-    }
-  }
-
-  @keyframes messageSlideOutBottom {
-    from {
-      transform: translateY(0);
-      opacity: 1;
-    }
-    to {
-      transform: translateY(100%);
       opacity: 0;
     }
   }
@@ -151,6 +151,17 @@ style.textContent = `
     to {
       transform: translateY(0);
       opacity: 1;
+    }
+  }
+
+  @keyframes messageSlideOutBottom {
+    from {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(100%);
+      opacity: 0;
     }
   }
 `;

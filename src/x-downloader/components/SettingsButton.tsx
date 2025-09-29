@@ -20,7 +20,6 @@ const StyledButton = styled("button")`
   cursor: pointer;
   z-index: 10000;
   color: white;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   transition:
     left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
     opacity 0.2s ease,

@@ -2,7 +2,7 @@
 // @name         X(Twitter) Downloader
 // @name:zh-CN   X（Twitter）下载器
 // @author       mengshouer
-// @version      0.9
+// @version      1.0.0
 // @description  Add a download button to the media.
 // @include      *://twitter.com/*
 // @include      *://*.twitter.com/*
@@ -27,56 +27,26 @@ const processedImages = new WeakSet<HTMLImageElement>();
 const processedVideos = new WeakSet<HTMLVideoElement>();
 const processedTweets = new WeakSet<HTMLElement>();
 
-// 公共的设置获取逻辑
 const getSettings = () => JSON.parse(localStorage.getItem("x-downloader-settings") || "{}");
-
-// 通用的按钮显示隐藏逻辑
-const createButtonVisibilityHandlers = (
-  buttonContainer: HTMLElement,
-  settingKey: string,
-  rerenderCallback: () => void,
-) => {
-  const showButton = () => {
-    const settings = getSettings();
-    const shouldShow = settings[settingKey] !== false;
-    buttonContainer.style.display = shouldShow ? "block" : "none";
-    if (shouldShow) {
-      rerenderCallback();
-    }
-  };
-
-  const hideButton = () => {
-    buttonContainer.style.display = "none";
-  };
-
-  return { showButton, hideButton };
-};
-
-type HoverButtonSettingKey = "showDownloadButton" | "showVideoDownloadButton";
 
 const mountHoverButton = (
   hostElement: HTMLElement,
-  settingKey: HoverButtonSettingKey,
+  settingKey: "showDownloadButton" | "showVideoDownloadButton",
   renderCallback: (container: HTMLElement) => void,
 ) => {
-  const buttonContainer = document.createElement("div");
-  buttonContainer.style.display = "none";
-  hostElement.appendChild(buttonContainer);
+  const container = document.createElement("div");
+  container.style.display = "none";
+  hostElement.appendChild(container);
 
-  const rerender = () => {
-    renderCallback(buttonContainer);
+  const showButton = () => {
+    const shouldShow = getSettings()[settingKey] !== false;
+    container.style.display = shouldShow ? "block" : "none";
+    if (shouldShow) renderCallback(container);
   };
 
-  rerender();
-
-  const { showButton, hideButton } = createButtonVisibilityHandlers(
-    buttonContainer,
-    settingKey,
-    rerender,
-  );
-
+  renderCallback(container); // 初始渲染
   hostElement.addEventListener("mouseenter", showButton);
-  hostElement.addEventListener("mouseleave", hideButton);
+  hostElement.addEventListener("mouseleave", () => (container.style.display = "none"));
 };
 
 const ensureRelativePosition = (element: HTMLElement) => {
@@ -90,29 +60,29 @@ const ensureRelativePosition = (element: HTMLElement) => {
  * 为Tweet添加通用下载按钮
  */
 function setupUniversalDownloadButton(tweetElement: HTMLElement): void {
-  if (processedTweets.has(tweetElement)) {
-    return;
-  }
+  if (processedTweets.has(tweetElement)) return;
 
-  // 查找role="group"的div元素
   const actionGroup = tweetElement.querySelector('div[role="group"]');
-  if (!actionGroup) {
-    return;
-  }
+  if (!actionGroup) return;
 
-  // 创建按钮容器
+  // 创建并添加按钮容器
   const buttonContainer = document.createElement("div");
-  buttonContainer.style.cssText = `
-    display: inline-flex;
-    align-items: center;
-    margin-left: auto;
-  `;
-
-  // 将按钮添加到action group的最后
+  buttonContainer.style.cssText = "display: inline-flex; align-items: center; margin-left: auto;";
   actionGroup.appendChild(buttonContainer);
 
-  // 渲染通用下载按钮
-  render(<UniversalDownloadButton tweetContainer={tweetElement} />, buttonContainer);
+  // 渲染函数
+  const renderButton = () =>
+    render(<UniversalDownloadButton tweetContainer={tweetElement} />, buttonContainer);
+
+  // 初始渲染
+  renderButton();
+
+  // hover时重新渲染（简单防抖）
+  let timeoutId: number | null = null;
+  actionGroup.addEventListener("mouseenter", () => {
+    if (timeoutId) clearTimeout(timeoutId);
+    timeoutId = window.setTimeout(renderButton, 50);
+  });
 
   processedTweets.add(tweetElement);
 }
@@ -120,25 +90,16 @@ function setupUniversalDownloadButton(tweetElement: HTMLElement): void {
 const isTargetImage = (img: HTMLImageElement) =>
   Boolean(img.src) && img.src.startsWith("https://pbs.twimg.com/media/");
 
-/**
- * 为单个图片设置交互监听
- */
 function setupImageInteraction(img: HTMLImageElement): void {
-  if (processedImages.has(img) || !isTargetImage(img)) {
-    return;
-  }
+  if (processedImages.has(img) || !isTargetImage(img)) return;
 
   const tweetContainer = findTweetContainer(img);
-
-  if (tweetContainer) {
-    setupUniversalDownloadButton(tweetContainer);
-  }
+  if (tweetContainer) setupUniversalDownloadButton(tweetContainer);
 
   const imageContainer = img.parentElement?.parentElement;
   if (!imageContainer) return;
 
   ensureRelativePosition(imageContainer);
-
   mountHoverButton(imageContainer, "showDownloadButton", (container) => {
     render(<ImageDownloadButton targetImage={img} />, container);
   });
@@ -146,27 +107,16 @@ function setupImageInteraction(img: HTMLImageElement): void {
   processedImages.add(img);
 }
 
-/**
- * 为单个视频设置交互监听
- */
 function setupVideoInteraction(video: HTMLVideoElement): void {
-  if (processedVideos.has(video)) {
-    return;
-  }
+  if (processedVideos.has(video)) return;
 
   const tweetContainer = findTweetContainer(video);
-
-  if (!tweetContainer) {
-    return;
-  }
+  if (!tweetContainer) return;
 
   setupUniversalDownloadButton(tweetContainer);
 
-  // 查找视频容器
   const videoContainer = findVideoContainer(video) || findVideoPlayerContainer(video);
-  if (!videoContainer) {
-    return;
-  }
+  if (!videoContainer) return;
 
   mountHoverButton(videoContainer, "showVideoDownloadButton", (container) => {
     render(<VideoDownloadButton src={video.src} tweetContainer={tweetContainer} />, container);
@@ -178,24 +128,19 @@ function setupVideoInteraction(video: HTMLVideoElement): void {
 const scanNodeForMedia = (node: Node) => {
   if (node instanceof HTMLImageElement && isTargetImage(node)) {
     setupImageInteraction(node);
-    return;
-  }
-
-  if (node.firstChild instanceof HTMLVideoElement) {
+  } else if (node.firstChild instanceof HTMLVideoElement) {
     setupVideoInteraction(node.firstChild);
-    return;
-  }
-
-  if (node instanceof Element || node instanceof Document || node instanceof DocumentFragment) {
-    // 处理图片
-    node.querySelectorAll(IMAGE_SELECTOR).forEach((img) => {
-      setupImageInteraction(img as HTMLImageElement);
-    });
-
-    // 处理视频
-    node.querySelectorAll(VIDEO_SELECTOR).forEach((video) => {
-      setupVideoInteraction(video as HTMLVideoElement);
-    });
+  } else if (
+    node instanceof Element ||
+    node instanceof Document ||
+    node instanceof DocumentFragment
+  ) {
+    node
+      .querySelectorAll(IMAGE_SELECTOR)
+      .forEach((img) => setupImageInteraction(img as HTMLImageElement));
+    node
+      .querySelectorAll(VIDEO_SELECTOR)
+      .forEach((video) => setupVideoInteraction(video as HTMLVideoElement));
   }
 };
 
@@ -209,9 +154,7 @@ function watchForMedia(): void {
   const scheduleScan = (node: Node) => {
     pendingNodes.add(node);
 
-    if (rafId !== null) {
-      return;
-    }
+    if (rafId !== null) return;
 
     rafId = requestAnimationFrame(() => {
       rafId = null;
@@ -260,7 +203,7 @@ function initializeApp(): void {
   appContainer.id = "x-downloader-app";
   document.body.appendChild(appContainer);
 
-  // 渲染主应用
+  // 渲染设置面板
   render(<App />, appContainer);
 
   // 开始监听图片和视频
