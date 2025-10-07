@@ -1,10 +1,8 @@
 import type { ComponentChildren } from "preact";
-import { preventEventPropagation } from "../../shared";
+import { preventEventPropagation, useGlobalKey } from "../../shared";
 import { styled, keyframes } from "../../shared/utils/goober-setup";
 
 interface DownloadButtonProps {
-  /** 点击处理函数 */
-  onDownload: (e: any) => void | Promise<void>;
   /** 按钮提示文本 */
   title: string;
   /** 是否正在下载 */
@@ -13,12 +11,16 @@ interface DownloadButtonProps {
   disabled?: boolean;
   /** 自定义图标 */
   icon?: ComponentChildren;
+  /** Shift+点击时的图标 */
+  shiftIcon?: ComponentChildren;
   /** 加载状态的图标 */
   loadingIcon?: ComponentChildren;
   /** 额外的样式覆盖 */
   style?: Record<string, string | number>;
   /** 额外的 CSS 类名 */
   className?: string;
+  /** 点击事件处理函数 */
+  onClick?: (e: Event, isShiftPressed: boolean) => void | Promise<void>;
 }
 
 const spin = keyframes`
@@ -94,22 +96,31 @@ const defaultLoadingIcon: ComponentChildren = (
   </LoadingIcon>
 );
 
+const defaultCopyIcon: ComponentChildren = (
+  <DownloadIcon xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+  </DownloadIcon>
+);
+
 export function DownloadButton({
-  onDownload,
   title,
   isDownloading = false,
   disabled = false,
   icon = defaultDownloadIcon,
+  shiftIcon = defaultCopyIcon,
   loadingIcon = defaultLoadingIcon,
   style = {},
   className = "",
+  onClick,
 }: DownloadButtonProps) {
   const isDisabled = disabled || isDownloading;
+  const isShiftPressed = useGlobalKey("Shift");
 
-  const handleClick = async (e: any) => {
+  const handleClick = (e: Event) => {
     preventEventPropagation(e);
     if (isDisabled) return;
-    await onDownload(e);
+
+    onClick?.(e, isShiftPressed);
   };
 
   // 将 CSS 属性名转换为对应的 CSS 变量名
@@ -148,7 +159,7 @@ export function DownloadButton({
       title={title}
       disabled={isDisabled}
     >
-      {isDownloading ? loadingIcon : icon}
+      {isDownloading ? loadingIcon : isShiftPressed && shiftIcon ? shiftIcon : icon}
     </StyledButton>
   );
 }

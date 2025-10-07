@@ -4,6 +4,7 @@ import {
   extractFileInfo,
   generateFileName,
   extractUrlInfo,
+  copyToClipboard,
   message,
   i18n,
 } from "../../shared";
@@ -22,6 +23,7 @@ interface ImageDownloadOptions {
   settings: DownloaderSettings;
   skipAutoLike?: boolean;
   imageIndex?: number;
+  isShiftPressed?: boolean;
 }
 
 /**
@@ -44,6 +46,7 @@ export const handleImageDownload = async ({
   settings,
   skipAutoLike = false,
   imageIndex,
+  isShiftPressed = false,
 }: ImageDownloadOptions) => {
   setIsDownloading(true);
   const { picname, ext } = extractFileInfo(targetImage.src);
@@ -71,6 +74,12 @@ export const handleImageDownload = async ({
   const downloadUrl = `https://pbs.twimg.com/media/${picname}?format=${ext}&name=orig`;
 
   try {
+    // 如果按住 Shift，直接复制链接
+    if (isShiftPressed) {
+      await copyToClipboard(downloadUrl);
+      return;
+    }
+
     await downloadFile(downloadUrl, `${filename}.${ext}`);
 
     if (settings.autoLikeOnDownload && urlInfo.tid && !skipAutoLike) {
@@ -96,11 +105,12 @@ export function ImageDownloadButton({ targetImage }: ImageDownloadButtonProps) {
   return (
     <DownloadButton
       isDownloading={isDownloading}
-      onDownload={() =>
+      onClick={(_, isShiftPressed) =>
         handleImageDownload({
           setIsDownloading,
           targetImage,
           settings,
+          isShiftPressed,
         })
       }
       title={i18n.t("ui.downloadImage")}

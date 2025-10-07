@@ -52,5 +52,7 @@ export const zhTranslations: LocaleData = {
     downloadImage: "下载原图",
     downloadImages: "下载 {count} 张图片",
     downloadVideos: "下载 {count} 个视频",
+    copied: "已复制到剪贴板",
+    copyFailed: "复制失败",
   },
 };

@@ -1,5 +1,5 @@
 import { useState } from "preact/hooks";
-import { downloadFile, generateFileName, message, i18n } from "../../shared";
+import { downloadFile, generateFileName, message, i18n, copyToClipboard } from "../../shared";
 import type { DownloaderSettings } from "../../shared/types";
 import {
   extractVideoUrl,
@@ -22,6 +22,7 @@ interface VideoDownloadOptions {
   tweetContainer: HTMLElement;
   settings: DownloaderSettings;
   skipAutoLike?: boolean;
+  isShiftPressed?: boolean;
 }
 
 export const handleVideoDownload = async ({
@@ -30,6 +31,7 @@ export const handleVideoDownload = async ({
   tweetContainer,
   settings,
   skipAutoLike = false,
+  isShiftPressed = false,
 }: VideoDownloadOptions) => {
   setIsDownloading(true);
   try {
@@ -44,6 +46,12 @@ export const handleVideoDownload = async ({
       src && src.startsWith("https://video.twimg.com") ? src : await extractVideoUrl(tweetId);
     if (!videoUrl) {
       message.error(i18n.t("messages.videoLinkNotFound"));
+      return;
+    }
+
+    // 如果按住 Shift，直接复制链接
+    if (isShiftPressed) {
+      await copyToClipboard(videoUrl);
       return;
     }
 
@@ -81,20 +89,17 @@ export function VideoDownloadButton({ src, tweetContainer }: VideoDownloadButton
 
   return (
     <DownloadButton
-      onDownload={() => {
-        if (isDownloading) return;
-        setIsDownloading(true);
+      isDownloading={isDownloading}
+      onClick={(_, isShiftPressed) =>
         handleVideoDownload({
           setIsDownloading,
           src,
           tweetContainer,
           settings,
-        }).finally(() => {
-          setIsDownloading(false);
-        });
-      }}
+          isShiftPressed,
+        })
+      }
       title={isDownloading ? i18n.t("ui.downloading") : i18n.t("ui.downloadVideo")}
-      isDownloading={isDownloading}
       style={{ bottom: "70px", right: "8px" }}
     />
   );

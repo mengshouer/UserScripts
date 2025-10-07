@@ -7,9 +7,11 @@ export { preventEventPropagation } from "./utils/dom";
 export { downloadFile, generateFileName, extractUrlInfo, extractFileInfo } from "./utils/download";
 export { styled, keyframes } from "./utils/goober-setup";
 export { message } from "./utils/message";
+export { copyToClipboard } from "./utils";
 
 // Hooks
 export { useTheme } from "./hooks/useTheme";
+export { useGlobalKey } from "./hooks/useGlobalKey";
 
 // i18n
 export * from "./i18n";

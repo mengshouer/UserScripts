@@ -54,5 +54,7 @@ export const enTranslations: LocaleData = {
     downloadImage: "Download Image",
     downloadImages: "Download {count} Images",
     downloadVideos: "Download {count} Videos",
+    copied: "Copied to clipboard",
+    copyFailed: "Copy failed",
   },
 };
