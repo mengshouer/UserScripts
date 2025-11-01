@@ -81,7 +81,7 @@ export const handleImageDownload = async ({
     await downloadFile(downloadUrl, `${filename}.${ext}`);
 
     if (settings.autoLikeOnDownload && urlInfo.tid && !skipAutoLike) {
-      const likeResult = await likeTweet(tweetContainer);
+      const likeResult = await likeTweet(tweetContainer, urlInfo.tid);
       if (!likeResult.success && likeResult.message) {
         message.error(likeResult.message);
       }
