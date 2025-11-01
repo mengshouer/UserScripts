@@ -66,7 +66,7 @@ export const handleVideoDownload = async ({
     await downloadFile(videoUrl, `${filename}.mp4`);
 
     if (settings.autoLikeOnDownload && tweetId && !skipAutoLike) {
-      const likeResult = await likeTweet(tweetId);
+      const likeResult = await likeTweet(tweetContainer);
       if (!likeResult.success && likeResult.message) {
         message.error(likeResult.message);
       }

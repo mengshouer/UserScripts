@@ -23,8 +23,7 @@ export const enTranslations: LocaleData = {
       showButtonHelp:
         "Display unified download button in tweet actions, automatically detects media type",
       autoLike: "Auto-like on download",
-      autoLikeHelp:
-        "Automatically like the tweet when downloading images or videos (UI won't update automatically)",
+      autoLikeHelp: "Automatically like the tweet when downloading images or videos",
     },
     reset: "Reset to default settings",
   },
@@ -40,6 +39,7 @@ export const enTranslations: LocaleData = {
     videoLinkNotFound: "Video download link not found",
     tweetAlreadyLiked: "Tweet already liked",
     likeSuccess: "Like successful",
+    likeButtonNotFound: "Like button not found",
     cannotGetAuthInfo: "Cannot get authentication info",
     networkRequestFailed: "Network request failed ({status})",
     likeFailed: "Like failed: {error}",

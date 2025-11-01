@@ -122,6 +122,7 @@ export function UniversalDownloadButton({ tweetContainer }: UniversalDownloadBut
             targetImage,
             settings,
             imageIndex: photoIndex,
+            tweetContainer: container,
           });
           message.success(i18n.t("messages.imagesDownloadSuccess", { count: 1 }));
           return;
@@ -141,6 +142,7 @@ export function UniversalDownloadButton({ tweetContainer }: UniversalDownloadBut
         settings,
         skipAutoLike: index > 0, // 只有第一张图片允许点赞，其他跳过
         imageIndex: index,
+        tweetContainer: container,
       });
     });
 

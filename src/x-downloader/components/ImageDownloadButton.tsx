@@ -13,10 +13,6 @@ import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
 import { DownloadButton } from "./DownloadButton";
 import { handleDownloadError, likeTweet } from "../utils";
 
-interface ImageDownloadButtonProps {
-  targetImage: HTMLImageElement;
-}
-
 interface ImageDownloadOptions {
   setIsDownloading: (downloading: boolean) => void;
   targetImage: HTMLImageElement;
@@ -24,6 +20,7 @@ interface ImageDownloadOptions {
   skipAutoLike?: boolean;
   imageIndex?: number;
   isShiftPressed?: boolean;
+  tweetContainer: HTMLElement | null;
 }
 
 /**
@@ -47,6 +44,7 @@ export const handleImageDownload = async ({
   skipAutoLike = false,
   imageIndex,
   isShiftPressed = false,
+  tweetContainer,
 }: ImageDownloadOptions) => {
   setIsDownloading(true);
   const { picname, ext } = extractFileInfo(targetImage.src);
@@ -83,7 +81,7 @@ export const handleImageDownload = async ({
     await downloadFile(downloadUrl, `${filename}.${ext}`);
 
     if (settings.autoLikeOnDownload && urlInfo.tid && !skipAutoLike) {
-      const likeResult = await likeTweet(urlInfo.tid);
+      const likeResult = await likeTweet(tweetContainer);
       if (!likeResult.success && likeResult.message) {
         message.error(likeResult.message);
       }
@@ -95,7 +93,12 @@ export const handleImageDownload = async ({
   }
 };
 
-export function ImageDownloadButton({ targetImage }: ImageDownloadButtonProps) {
+interface ImageDownloadButtonProps {
+  targetImage: HTMLImageElement;
+  tweetContainer: HTMLElement | null;
+}
+
+export function ImageDownloadButton({ targetImage, tweetContainer }: ImageDownloadButtonProps) {
   const { settings } = useDownloaderSettings();
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -111,6 +114,7 @@ export function ImageDownloadButton({ targetImage }: ImageDownloadButtonProps) {
           targetImage,
           settings,
           isShiftPressed,
+          tweetContainer,
         })
       }
       title={i18n.t("ui.downloadImage")}
