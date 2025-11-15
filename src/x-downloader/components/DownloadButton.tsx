@@ -34,22 +34,21 @@ const spin = keyframes`
 
 const StyledButton = styled("button")`
   position: absolute;
-  z-index: var(--z-index, 1000);
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--width, 36px);
-  height: var(--height, 36px);
-  border-radius: var(--border-radius, 50%);
-  background: var(--background, rgba(0, 0, 0, 0.8));
-  border: var(--border, 2px solid rgba(255, 255, 255, 0.9));
-  cursor: var(--cursor);
-  opacity: var(--opacity);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  opacity: 0.8;
   transition:
     opacity 0.2s ease,
     transform 0.2s ease;
-  transform: var(--transform);
-
+  transform: scale(1);
   top: var(--top);
   right: var(--right);
   bottom: var(--bottom);
@@ -57,7 +56,7 @@ const StyledButton = styled("button")`
 
   &:hover:not(:disabled) {
     opacity: 1;
-    transform: var(--hover-transform);
+    transform: scale(1.05);
   }
 `;
 
