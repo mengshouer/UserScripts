@@ -15,6 +15,9 @@
     "prefer-const": "error",
     "no-var": "error",
     "eqeqeq": "error",
+    "no-redeclare": "off",
+    "@typescript-eslint/no-redeclare": "error",
+    "no-empty": ["error", { "allowEmptyCatch": true }],
     "@typescript-eslint/no-unused-vars": [
       "error",
       { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
