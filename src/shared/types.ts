@@ -62,6 +62,10 @@ export interface DownloaderSettings extends BaseSettings {
     | "top-right"
     | "bottom-left"
     | "bottom-right";
+  readonly buttonPositionVertical: "top" | "bottom";
+  readonly buttonPositionHorizontal: "left" | "right";
+  readonly buttonPositionVerticalValue: string;
+  readonly buttonPositionHorizontalValue: string;
 }
 
 // === 组件通用类型 ===

@@ -2,7 +2,7 @@
 // @name         X(Twitter) Downloader
 // @name:zh-CN   X（Twitter）下载器
 // @author       mengshouer
-// @version      1.0.5
+// @version      1.0.6
 // @description  For X(Twitter) add download buttons for images and videos.
 // @description:zh-CN  为 X(Twitter) 的图片和视频添加下载按钮。
 // @include      *://twitter.com/*

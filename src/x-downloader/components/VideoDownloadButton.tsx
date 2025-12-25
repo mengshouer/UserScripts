@@ -7,6 +7,7 @@ import {
   getUserIdFromTweetContainer,
   handleDownloadError,
   likeTweet,
+  getButtonPositionStyle,
 } from "../utils";
 import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
 import { DownloadButton } from "./DownloadButton";
@@ -100,7 +101,7 @@ export function VideoDownloadButton({ src, tweetContainer }: VideoDownloadButton
         })
       }
       title={isDownloading ? i18n.t("ui.downloading") : i18n.t("ui.downloadVideo")}
-      style={{ bottom: "70px", right: "8px" }}
+      style={getButtonPositionStyle(settings)}
     />
   );
 }

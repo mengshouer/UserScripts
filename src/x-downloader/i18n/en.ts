@@ -25,6 +25,18 @@ export const enTranslations: LocaleData = {
       autoLike: "Auto-like on download",
       autoLikeHelp: "Automatically like the tweet when downloading images or videos",
     },
+    position: {
+      title: "Button Position Settings",
+      vertical: "Vertical",
+      horizontal: "Horizontal",
+      top: "Top",
+      bottom: "Bottom",
+      left: "Left",
+      right: "Right",
+      verticalValue: "Vertical distance",
+      horizontalValue: "Horizontal distance",
+      valueHelp: "Numbers default to px, or enter values with units like 1rem, 10%",
+    },
     reset: "Reset to default settings",
   },
   messages: {

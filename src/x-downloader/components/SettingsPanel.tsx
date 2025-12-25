@@ -154,6 +154,77 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             <div style={helpTextStyle}>{t("settings.universal.autoLikeHelp")}</div>
           </div>
         </SettingsCard>
+
+        {/* 按钮位置设置卡片 */}
+        <SettingsCard title={t("settings.position.title")}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
+              <div style={{ flex: "1", minWidth: "120px" }}>
+                <label style={labelStyle}>{t("settings.position.vertical")}</label>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <Button
+                    variant={settings.buttonPositionVertical === "top" ? "primary" : "secondary"}
+                    size="small"
+                    onClick={() => setSetting("buttonPositionVertical", "top")}
+                  >
+                    {t("settings.position.top")}
+                  </Button>
+                  <Button
+                    variant={settings.buttonPositionVertical === "bottom" ? "primary" : "secondary"}
+                    size="small"
+                    onClick={() => setSetting("buttonPositionVertical", "bottom")}
+                  >
+                    {t("settings.position.bottom")}
+                  </Button>
+                </div>
+              </div>
+              <div style={{ flex: "1", minWidth: "120px" }}>
+                <label style={labelStyle}>{t("settings.position.verticalValue")}</label>
+                <Input
+                  value={settings.buttonPositionVerticalValue as string}
+                  onChange={(value) => setSetting("buttonPositionVerticalValue", value)}
+                  placeholder="8"
+                />
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
+              <div style={{ flex: "1", minWidth: "120px" }}>
+                <label style={labelStyle}>{t("settings.position.horizontal")}</label>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <Button
+                    variant={settings.buttonPositionHorizontal === "left" ? "primary" : "secondary"}
+                    size="small"
+                    onClick={() => setSetting("buttonPositionHorizontal", "left")}
+                  >
+                    {t("settings.position.left")}
+                  </Button>
+                  <Button
+                    variant={
+                      settings.buttonPositionHorizontal === "right" ? "primary" : "secondary"
+                    }
+                    size="small"
+                    onClick={() => setSetting("buttonPositionHorizontal", "right")}
+                  >
+                    {t("settings.position.right")}
+                  </Button>
+                </div>
+              </div>
+              <div style={{ flex: "1", minWidth: "120px" }}>
+                <label style={labelStyle}>{t("settings.position.horizontalValue")}</label>
+                <Input
+                  value={settings.buttonPositionHorizontalValue as string}
+                  onChange={(value) => setSetting("buttonPositionHorizontalValue", value)}
+                  placeholder="8"
+                />
+              </div>
+            </div>
+
+            <div style={{ fontSize: "12px", color: theme.secondaryTextColor }}>
+              {t("settings.position.valueHelp")}
+            </div>
+          </div>
+        </SettingsCard>
       </div>
     </Modal>
   );

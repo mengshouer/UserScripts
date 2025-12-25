@@ -11,7 +11,7 @@ import {
 import type { DownloaderSettings } from "../../shared/types";
 import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
 import { DownloadButton } from "./DownloadButton";
-import { handleDownloadError, likeTweet } from "../utils";
+import { handleDownloadError, likeTweet, getButtonPositionStyle } from "../utils";
 
 interface ImageDownloadOptions {
   setIsDownloading: (downloading: boolean) => void;
@@ -118,7 +118,7 @@ export function ImageDownloadButton({ targetImage, tweetContainer }: ImageDownlo
         })
       }
       title={i18n.t("ui.downloadImage")}
-      style={{ bottom: "8px", right: "8px" }}
+      style={getButtonPositionStyle(settings)}
     />
   );
 }
