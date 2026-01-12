@@ -1,5 +1,6 @@
 import { render, h } from "preact";
 import { Message } from "../components/Message";
+import { STORAGE_KEY } from "../constants";
 
 type MessagePlacement =
   | "top"
@@ -11,7 +12,7 @@ type MessagePlacement =
 
 const getUserMessagePlacement = (): MessagePlacement => {
   try {
-    const settings = JSON.parse(localStorage.getItem("x-downloader-settings") || "{}");
+    const settings = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
     return settings.messagePlacement || "top";
   } catch {
     return "top";
@@ -23,6 +24,7 @@ interface MessageConfig {
   content: string;
   duration?: number;
   placement?: MessagePlacement;
+  onClick?: () => void;
 }
 
 // 模块级状态
@@ -95,11 +97,12 @@ const show = (config: MessageConfig) => {
 
 const createMessageMethod =
   (type: "success" | "error" | "warning" | "info") =>
-  (content: string, duration?: number, placement?: MessagePlacement) =>
+  (content: string, duration?: number, placement?: MessagePlacement, onClick?: () => void) =>
     show({
       type,
       content,
       placement: placement || getUserMessagePlacement(),
+      ...(onClick && { onClick }),
       ...(duration !== undefined && { duration }),
     });
 
@@ -119,8 +122,11 @@ const destroy = () => {
 
 export const message = { success, error, warning, info, destroy };
 
-const style = document.createElement("style");
-style.textContent = `
+const MESSAGE_STYLE_ID = "userscript-message-styles";
+if (!document.getElementById(MESSAGE_STYLE_ID)) {
+  const style = document.createElement("style");
+  style.id = MESSAGE_STYLE_ID;
+  style.textContent = `
   @keyframes messageSlideIn {
     from {
       transform: translateY(-100%);
@@ -165,4 +171,5 @@ style.textContent = `
     }
   }
 `;
-document.head.appendChild(style);
+  document.head.appendChild(style);
+}

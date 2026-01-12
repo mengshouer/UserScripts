@@ -10,8 +10,9 @@ import {
   ButtonPositionSettings,
   useTheme,
 } from "../../shared";
-import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
+import { usePixivDownloaderSettings } from "../hooks/usePixivDownloaderSettings";
 import { useI18n } from "../i18n";
+import type { PixivDownloaderSettings } from "../types";
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -19,7 +20,7 @@ interface SettingsPanelProps {
 }
 
 export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
-  const { settings, setSetting, resetSettings } = useDownloaderSettings();
+  const { settings, setSetting, resetSettings } = usePixivDownloaderSettings();
   const { t } = useI18n();
   const { theme, isDark } = useTheme();
   const [resetKey, setResetKey] = useState(0);
@@ -103,56 +104,14 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             </div>
           </div>
 
-          <Checkbox
-            checked={settings.showDownloadButton}
-            onChange={(checked) => setSetting("showDownloadButton", checked)}
-          >
-            {t("settings.image.showButton")}
-          </Checkbox>
-        </SettingsCard>
-
-        {/* 视频下载设置卡片 */}
-        <SettingsCard title={t("settings.video.title")}>
-          <div style={fieldStyle}>
-            <label style={labelStyle}>{t("settings.video.fileName")}</label>
-            <Input
-              value={settings.videoFileName}
-              onChange={(value) => setSetting("videoFileName", value)}
-              placeholder={t("settings.video.fileNamePlaceholder")}
-            />
-            <div style={{ marginTop: "6px", fontSize: "12px", color: theme.secondaryTextColor }}>
-              {t("settings.video.fileNameHelp")}
-            </div>
-          </div>
-
-          <Checkbox
-            checked={settings.showVideoDownloadButton}
-            onChange={(checked) => setSetting("showVideoDownloadButton", checked)}
-          >
-            {t("settings.video.showButton")}
-          </Checkbox>
-        </SettingsCard>
-
-        {/* 通用下载设置卡片 */}
-        <SettingsCard title={t("settings.universal.title")}>
           <div>
             <Checkbox
-              checked={settings.showUniversalDownloadButton}
-              onChange={(checked) => setSetting("showUniversalDownloadButton", checked)}
+              checked={settings.showHoverButton}
+              onChange={(checked) => setSetting("showHoverButton", checked)}
             >
-              {t("settings.universal.showButton")}
+              {t("settings.image.showHoverButton")}
             </Checkbox>
-            <div style={helpTextStyle}>{t("settings.universal.showButtonHelp")}</div>
-          </div>
-
-          <div style={{ marginTop: "16px" }}>
-            <Checkbox
-              checked={settings.autoLikeOnDownload}
-              onChange={(checked) => setSetting("autoLikeOnDownload", checked)}
-            >
-              {t("settings.universal.autoLike")}
-            </Checkbox>
-            <div style={helpTextStyle}>{t("settings.universal.autoLikeHelp")}</div>
+            <div style={helpTextStyle}>{t("settings.image.showHoverButtonHelp")}</div>
           </div>
         </SettingsCard>
 
@@ -164,7 +123,9 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             buttonPositionVerticalValue: settings.buttonPositionVerticalValue,
             buttonPositionHorizontalValue: settings.buttonPositionHorizontalValue,
           }}
-          onChange={(key, value) => setSetting(key, value as never)}
+          onChange={(key, value) => {
+            setSetting(key, value as PixivDownloaderSettings[typeof key]);
+          }}
         />
       </div>
     </Modal>

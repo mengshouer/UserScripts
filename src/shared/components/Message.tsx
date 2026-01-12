@@ -6,6 +6,7 @@ interface MessageProps {
   readonly content: string;
   readonly duration?: number;
   readonly onClose?: () => void;
+  readonly onClick?: () => void;
   readonly className?: string;
   readonly style?: Record<string, string | number>;
 }
@@ -62,6 +63,7 @@ export function Message({
   content,
   duration = 3000,
   onClose,
+  onClick,
   className,
   style,
 }: MessageProps) {
@@ -113,7 +115,10 @@ export function Message({
     <MessageContainer
       className={`message-${type} ${className || ""}`}
       style={style}
-      onClick={onClose}
+      onClick={() => {
+        onClick?.();
+        onClose?.();
+      }}
       onMouseEnter={pauseTimer}
       onMouseLeave={resumeTimer}
     >

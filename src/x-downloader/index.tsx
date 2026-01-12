@@ -2,15 +2,16 @@
 // @name         X(Twitter) Downloader
 // @name:zh-CN   X（Twitter）下载器
 // @author       mengshouer
-// @version      1.0.6
-// @description  For X(Twitter) add download buttons for images and videos.
-// @description:zh-CN  为 X(Twitter) 的图片和视频添加下载按钮。
+// @version      1.0.7
+// @description  For X(Twitter) add download buttons for images and videos. Settings available by hovering mouse to the bottom left corner or via Tampermonkey menu.
+// @description:zh-CN  为 X(Twitter) 的图片和视频添加下载按钮。鼠标移入浏览器左下角或油猴菜单可打开设置。
 // @include      *://twitter.com/*
 // @include      *://*.twitter.com/*
 // @include      *://x.com/*
 // @include      *://*.x.com/*
 // @license      GPL-3.0 License
 // @namespace    https://github.com/mengshouer/UserScripts
+// @grant        GM_registerMenuCommand
 // ==/UserScript==
 
 import { render } from "preact";
@@ -21,6 +22,12 @@ import { VideoDownloadButton } from "./components/VideoDownloadButton";
 import { UniversalDownloadButton } from "./components/UniversalDownloadButton";
 import { findVideoContainer, findVideoPlayerContainer } from "./utils/videoUtils";
 import { findTweetContainer, isInsideQuoteTweet } from "./utils";
+import { STORAGE_KEY, OPEN_SETTINGS_EVENT } from "../shared";
+
+// 注册油猴菜单命令
+GM_registerMenuCommand("⚙️ Settings / 设置", () => {
+  window.dispatchEvent(new CustomEvent(OPEN_SETTINGS_EVENT));
+});
 
 export const IMAGE_SELECTOR = 'img[src^="https://pbs.twimg.com/media/"]';
 export const VIDEO_SELECTOR = "video";
@@ -28,7 +35,7 @@ const processedImages = new WeakSet<HTMLImageElement>();
 const processedVideos = new WeakSet<HTMLVideoElement>();
 const processedTweets = new WeakSet<HTMLElement>();
 
-const getSettings = () => JSON.parse(localStorage.getItem("x-downloader-settings") || "{}");
+const getSettings = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
 
 const mountHoverButton = (
   hostElement: HTMLElement,

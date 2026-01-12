@@ -1,5 +1,6 @@
 import { useState, useEffect } from "preact/hooks";
 import { createSettingsHook } from "../../shared/hooks/useSettings";
+import { STORAGE_KEY } from "../../shared";
 import type { DownloaderSettings } from "../../shared/types";
 
 const DEFAULT_SETTINGS: DownloaderSettings = {
@@ -15,8 +16,6 @@ const DEFAULT_SETTINGS: DownloaderSettings = {
   buttonPositionVerticalValue: "64",
   buttonPositionHorizontalValue: "8",
 };
-
-const STORAGE_KEY = "x-downloader-settings";
 
 // 创建单例设置管理器
 const settingsHook = createSettingsHook(STORAGE_KEY, DEFAULT_SETTINGS);

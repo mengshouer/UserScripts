@@ -27,4 +27,18 @@ export const zhTranslations: LocaleData = {
     download: "下载",
     settings: "设置",
   },
+  settings: {
+    position: {
+      title: "按钮位置设置",
+      vertical: "垂直方向",
+      horizontal: "水平方向",
+      top: "上",
+      bottom: "下",
+      left: "左",
+      right: "右",
+      verticalValue: "垂直距离",
+      horizontalValue: "水平距离",
+      valueHelp: "纯数字默认 px，也可输入带单位的值如 1rem、10%",
+    },
+  },
 };

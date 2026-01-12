@@ -27,4 +27,18 @@ export const enTranslations: LocaleData = {
     download: "Download",
     settings: "Settings",
   },
+  settings: {
+    position: {
+      title: "Button Position",
+      vertical: "Vertical",
+      horizontal: "Horizontal",
+      top: "Top",
+      bottom: "Bottom",
+      left: "Left",
+      right: "Right",
+      verticalValue: "Vertical Offset",
+      horizontalValue: "Horizontal Offset",
+      valueHelp: "Pure numbers default to px, also supports values like 1rem, 10%",
+    },
+  },
 };

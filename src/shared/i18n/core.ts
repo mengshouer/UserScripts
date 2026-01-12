@@ -17,6 +17,26 @@ try {
   currentLocale = detectBrowserLocale();
 }
 
+// 深度合并对象
+const deepMerge = (target: any, source: any): any => {
+  const result = { ...target };
+  for (const key of Object.keys(source)) {
+    if (
+      source[key] !== null &&
+      typeof source[key] === "object" &&
+      !Array.isArray(source[key]) &&
+      target[key] !== null &&
+      typeof target[key] === "object" &&
+      !Array.isArray(target[key])
+    ) {
+      result[key] = deepMerge(target[key], source[key]);
+    } else {
+      result[key] = source[key];
+    }
+  }
+  return result;
+};
+
 // 工具函数
 const getNestedValue = (obj: any, path: string): string | undefined => {
   let result = obj;
@@ -52,7 +72,7 @@ function t(
 
 export const i18n = {
   addTranslations(locale: Locale, data: LocaleData): void {
-    translations[locale] = Object.assign(translations[locale] || {}, data);
+    translations[locale] = deepMerge(translations[locale] || {}, data);
   },
 
   setLocale(locale: Locale): void {

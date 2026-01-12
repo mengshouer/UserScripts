@@ -8,6 +8,19 @@ declare global {
     interface IntrinsicElements extends PreactJSX.IntrinsicElements {}
     interface ElementChildrenAttribute extends PreactJSX.ElementChildrenAttribute {}
   }
+
+  // === GM_* 全局函数声明 ===
+  function GM_registerMenuCommand(caption: string, onClick: () => void, accessKey?: string): number;
+
+  function GM_xmlhttpRequest(details: {
+    method: string;
+    url: string;
+    responseType?: "blob" | "arraybuffer" | "json" | "text";
+    headers?: Record<string, string>;
+    onload?: (response: { response: Blob | ArrayBuffer | unknown }) => void;
+    onerror?: (error: unknown) => void;
+    onprogress?: (progress: { loaded: number; total: number }) => void;
+  }): void;
 }
 
 // === Goober CSS-in-JS 类型扩展 ===
@@ -121,6 +134,6 @@ export interface DownloadButtonProps extends BaseComponentProps {
 // === 工具函数类型 ===
 export interface StorageManager<T extends BaseSettings> {
   loadSettings(): T;
-  saveSettings(settings: Partial<T>): void;
-  resetSettings(): void;
+  saveSettings(settings: Partial<T>): T;
+  resetSettings(): T;
 }

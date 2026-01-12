@@ -1,10 +1,20 @@
 // 类型定义
 export type * from "./types";
 
+// 常量
+export { STORAGE_KEY, OPEN_SETTINGS_EVENT } from "./constants";
+
 // 工具函数
 export { StorageManager } from "./utils/storage";
-export { preventEventPropagation } from "./utils/dom";
-export { downloadFile, generateFileName, extractUrlInfo, extractFileInfo } from "./utils/download";
+export { preventEventPropagation, formatPositionValue } from "./utils/dom";
+export {
+  downloadFile,
+  gmDownloadFile,
+  generateFileName,
+  extractUrlInfo,
+  extractFileInfo,
+  downloadGuard,
+} from "./utils/download";
 export { styled, keyframes } from "./utils/goober-setup";
 export { message } from "./utils/message";
 export { copyToClipboard } from "./utils";
@@ -26,3 +36,9 @@ export { MessagePlacementSelector } from "./components/MessagePlacementSelector"
 export { Modal } from "./components/Modal";
 export { Select } from "./components/Select";
 export { SettingsCard } from "./components/SettingsCard";
+export { SettingsButton, type SettingsButtonProps } from "./components/SettingsButton";
+export {
+  ButtonPositionSettings,
+  type ButtonPositionValues,
+  type ButtonPositionSettingsProps,
+} from "./components/ButtonPositionSettings";

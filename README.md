@@ -13,6 +13,7 @@
 | 脚本名       | 描述                            | 安装(min) / 备用(jsdelivr)                                                                                                                                                                                 | 安装(unzip)                                                                                              |
 | ------------ | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | x-downloader | 给 X 的图片或者视频添加下载按钮 | [安装](https://raw.githubusercontent.com/mengshouer/UserScripts/refs/heads/release/x-downloader.min.user.js) / [备用](https://cdn.jsdelivr.net/gh/mengshouer/UserScripts@release/x-downloader.min.user.js) | [安装](https://raw.githubusercontent.com/mengshouer/UserScripts/refs/heads/release/x-downloader.user.js) |
+| pixiv-enhanced | Pixiv 作品下载增强 | [安装](https://raw.githubusercontent.com/mengshouer/UserScripts/refs/heads/release/pixiv-enhanced.min.user.js) / [备用](https://cdn.jsdelivr.net/gh/mengshouer/UserScripts@release/pixiv-enhanced.min.user.js) | [安装](https://raw.githubusercontent.com/mengshouer/UserScripts/refs/heads/release/pixiv-enhanced.user.js) |
 
 ---
 
@@ -25,6 +26,7 @@ Some useful UserScripts for personal use, You need to install [Tampermonkey](htt
 | Script Name  | Description                      | Install (min) / Mirror (jsdelivr)                                                                                                                                                                               | Install (unzip)                                                                                             |
 | ------------ | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | x-downloader | Add download buttons for X media | [Install](https://raw.githubusercontent.com/mengshouer/UserScripts/refs/heads/release/x-downloader.min.user.js) / [Mirror](https://cdn.jsdelivr.net/gh/mengshouer/UserScripts@release/x-downloader.min.user.js) | [Install](https://raw.githubusercontent.com/mengshouer/UserScripts/refs/heads/release/x-downloader.user.js) |
+| pixiv-enhanced | Enhance Pixiv with download features | [Install](https://raw.githubusercontent.com/mengshouer/UserScripts/refs/heads/release/pixiv-enhanced.min.user.js) / [Mirror](https://cdn.jsdelivr.net/gh/mengshouer/UserScripts@release/pixiv-enhanced.min.user.js) | [Install](https://raw.githubusercontent.com/mengshouer/UserScripts/refs/heads/release/pixiv-enhanced.user.js) |
 
 ### Development Setup
 

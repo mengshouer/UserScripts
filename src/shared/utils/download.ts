@@ -2,10 +2,34 @@
  * 下载相关工具函数
  */
 
+// 下载守卫
+let downloadCount = 0;
+const beforeUnloadHandler = (e: BeforeUnloadEvent) => {
+  e.preventDefault();
+  e.returnValue = "";
+};
+
+export const downloadGuard = {
+  add: () => {
+    if (downloadCount === 0) {
+      window.addEventListener("beforeunload", beforeUnloadHandler);
+    }
+    downloadCount++;
+  },
+  remove: () => {
+    downloadCount--;
+    if (downloadCount <= 0) {
+      downloadCount = 0;
+      window.removeEventListener("beforeunload", beforeUnloadHandler);
+    }
+  },
+};
+
 /**
  * 下载文件
  */
 export async function downloadFile(url: string, fileName: string): Promise<void> {
+  downloadGuard.add();
   try {
     const response = await fetch(url);
     if (!response.ok) {
@@ -30,7 +54,57 @@ export async function downloadFile(url: string, fileName: string): Promise<void>
   } catch (error) {
     console.error(`Download failed: ${fileName}`, error);
     throw error;
+  } finally {
+    downloadGuard.remove();
   }
+}
+
+export interface GmDownloadOptions {
+  headers?: Record<string, string>;
+}
+
+/**
+ * 使用 GM_xmlhttpRequest 下载文件 (绕过 CORS)
+ */
+export async function gmDownloadFile(
+  url: string,
+  fileName: string,
+  options?: GmDownloadOptions,
+): Promise<void> {
+  downloadGuard.add();
+  return new Promise((resolve, reject) => {
+    GM_xmlhttpRequest({
+      method: "GET",
+      url,
+      responseType: "blob",
+      ...(options?.headers && { headers: options.headers }),
+      onload: (response) => {
+        try {
+          const blob = response.response as Blob;
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = blobUrl;
+          a.download = fileName;
+          a.style.display = "none";
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+          }, 100);
+          resolve();
+        } catch (error) {
+          reject(error);
+        } finally {
+          downloadGuard.remove();
+        }
+      },
+      onerror: (error) => {
+        downloadGuard.remove();
+        reject(error);
+      },
+    });
+  });
 }
 
 /**
