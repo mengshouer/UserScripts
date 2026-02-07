@@ -2,7 +2,7 @@
 // @name         X(Twitter) Downloader
 // @name:zh-CN   X（Twitter）下载器
 // @author       mengshouer
-// @version      1.0.7
+// @version      1.0.8
 // @description  For X(Twitter) add download buttons for images and videos. Settings available by hovering mouse to the bottom left corner or via Tampermonkey menu.
 // @description:zh-CN  为 X(Twitter) 的图片和视频添加下载按钮。鼠标移入浏览器左下角或油猴菜单可打开设置。
 // @include      *://twitter.com/*
@@ -22,7 +22,7 @@ import { VideoDownloadButton } from "./components/VideoDownloadButton";
 import { UniversalDownloadButton } from "./components/UniversalDownloadButton";
 import { findVideoContainer, findVideoPlayerContainer } from "./utils/videoUtils";
 import { findTweetContainer, isInsideQuoteTweet } from "./utils";
-import { STORAGE_KEY, OPEN_SETTINGS_EVENT } from "../shared";
+import { STORAGE_KEY, OPEN_SETTINGS_EVENT, SETTINGS_CHANGE_EVENT } from "../shared";
 
 // 注册油猴菜单命令
 GM_registerMenuCommand("⚙️ Settings / 设置", () => {
@@ -215,6 +215,35 @@ function watchForMedia(): void {
 }
 
 /**
+ * 初始化隐藏 Edit image 按钮的样式
+ */
+function initializeEditImageButtonStyle(): void {
+  const styleId = "x-downloader-hide-edit-image";
+  let styleElement = document.getElementById(styleId) as HTMLStyleElement | null;
+
+  if (!styleElement) {
+    styleElement = document.createElement("style");
+    styleElement.id = styleId;
+    document.head.appendChild(styleElement);
+  }
+
+  const updateStyle = () => {
+    const settings = getSettings();
+    if (settings.hideEditImageButton) {
+      styleElement!.textContent = 'a[aria-label="Edit image"] { display: none !important; }';
+    } else {
+      styleElement!.textContent = "";
+    }
+  };
+
+  // 初始更新
+  updateStyle();
+
+  // 监听设置变化
+  window.addEventListener(SETTINGS_CHANGE_EVENT, updateStyle);
+}
+
+/**
  * 初始化应用
  */
 function initializeApp(): void {
@@ -225,6 +254,9 @@ function initializeApp(): void {
 
   // 渲染设置面板
   render(<App />, appContainer);
+
+  // 初始化隐藏 Edit image 按钮的样式
+  initializeEditImageButtonStyle();
 
   // 开始监听图片和视频
   watchForMedia();

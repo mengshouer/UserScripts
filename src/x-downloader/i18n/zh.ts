@@ -23,6 +23,8 @@ export const zhTranslations: LocaleData = {
       showButtonHelp: "在推文操作栏中显示统一的下载按钮，自动检测媒体类型",
       autoLike: "下载时自动点赞",
       autoLikeHelp: "下载图片或视频时自动为推文点赞",
+      hideEditImage: "隐藏图片编辑按钮",
+      hideEditImageHelp: '隐藏推文图片上的 "Edit image" 按钮',
     },
     reset: "重置为默认设置",
   },

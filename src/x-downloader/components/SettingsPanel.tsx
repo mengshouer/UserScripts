@@ -154,6 +154,16 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             </Checkbox>
             <div style={helpTextStyle}>{t("settings.universal.autoLikeHelp")}</div>
           </div>
+
+          <div style={{ marginTop: "16px" }}>
+            <Checkbox
+              checked={settings.hideEditImageButton}
+              onChange={(checked) => setSetting("hideEditImageButton", checked)}
+            >
+              {t("settings.universal.hideEditImage")}
+            </Checkbox>
+            <div style={helpTextStyle}>{t("settings.universal.hideEditImageHelp")}</div>
+          </div>
         </SettingsCard>
 
         {/* 按钮位置设置卡片 */}

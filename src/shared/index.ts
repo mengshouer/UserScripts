@@ -2,7 +2,7 @@
 export type * from "./types";
 
 // 常量
-export { STORAGE_KEY, OPEN_SETTINGS_EVENT } from "./constants";
+export { STORAGE_KEY, OPEN_SETTINGS_EVENT, SETTINGS_CHANGE_EVENT } from "./constants";
 
 // 工具函数
 export { StorageManager } from "./utils/storage";

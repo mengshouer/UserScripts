@@ -15,6 +15,7 @@ const DEFAULT_SETTINGS: DownloaderSettings = {
   buttonPositionHorizontal: "right",
   buttonPositionVerticalValue: "64",
   buttonPositionHorizontalValue: "8",
+  hideEditImageButton: false,
 };
 
 // 创建单例设置管理器

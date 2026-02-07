@@ -1,5 +1,6 @@
 import { signal, computed } from "@preact/signals-core";
 import { StorageManager } from "../utils/storage";
+import { SETTINGS_CHANGE_EVENT } from "../constants";
 import type { BaseSettings } from "../types";
 
 /**
@@ -19,7 +20,7 @@ export function createSettingsHook<T extends BaseSettings>(storageKey: string, d
     settingsSignal.value = updated;
 
     // 触发自定义事件通知设置已变更
-    window.dispatchEvent(new CustomEvent(`${storageKey}-changed`));
+    window.dispatchEvent(new CustomEvent(SETTINGS_CHANGE_EVENT));
   };
 
   const resetSettings = () => {
@@ -27,7 +28,7 @@ export function createSettingsHook<T extends BaseSettings>(storageKey: string, d
     settingsSignal.value = reset;
 
     // 触发自定义事件通知设置已变更
-    window.dispatchEvent(new CustomEvent(`${storageKey}-changed`));
+    window.dispatchEvent(new CustomEvent(SETTINGS_CHANGE_EVENT));
     return reset;
   };
 

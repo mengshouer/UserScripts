@@ -24,6 +24,8 @@ export const enTranslations: LocaleData = {
         "Display unified download button in tweet actions, automatically detects media type",
       autoLike: "Auto-like on download",
       autoLikeHelp: "Automatically like the tweet when downloading images or videos",
+      hideEditImage: "Hide edit image button",
+      hideEditImageHelp: 'Hide the "Edit image" button on tweet images',
     },
     reset: "Reset to default settings",
   },
