@@ -2,7 +2,7 @@
 // @name         X(Twitter) Downloader
 // @name:zh-CN   X（Twitter）下载器
 // @author       mengshouer
-// @version      1.0.8
+// @version      1.1.0
 // @description  For X(Twitter) add download buttons for images and videos. Settings available by hovering mouse to the bottom left corner or via Tampermonkey menu.
 // @description:zh-CN  为 X(Twitter) 的图片和视频添加下载按钮。鼠标移入浏览器左下角或油猴菜单可打开设置。
 // @include      *://twitter.com/*
@@ -12,6 +12,8 @@
 // @license      GPL-3.0 License
 // @namespace    https://github.com/mengshouer/UserScripts
 // @grant        GM_registerMenuCommand
+// @grant        unsafeWindow
+// @run-at       document-start
 // ==/UserScript==
 
 import { render } from "preact";
@@ -22,7 +24,11 @@ import { VideoDownloadButton } from "./components/VideoDownloadButton";
 import { UniversalDownloadButton } from "./components/UniversalDownloadButton";
 import { findVideoContainer, findVideoPlayerContainer } from "./utils/videoUtils";
 import { findTweetContainer, isInsideQuoteTweet } from "./utils";
+import { initializeFollowBadgeSystem, setupFollowBadgeForTweet } from "./utils/followBadge";
+import { installFollowStateInterceptor } from "./utils/followState";
 import { STORAGE_KEY, OPEN_SETTINGS_EVENT, SETTINGS_CHANGE_EVENT } from "../shared";
+
+installFollowStateInterceptor();
 
 // 注册油猴菜单命令
 GM_registerMenuCommand("⚙️ Settings / 设置", () => {
@@ -31,6 +37,7 @@ GM_registerMenuCommand("⚙️ Settings / 设置", () => {
 
 export const IMAGE_SELECTOR = 'img[src^="https://pbs.twimg.com/media/"]';
 export const VIDEO_SELECTOR = "video";
+const TWEET_SELECTOR = 'article[data-testid="tweet"]';
 const processedImages = new WeakSet<HTMLImageElement>();
 const processedVideos = new WeakSet<HTMLVideoElement>();
 const processedTweets = new WeakSet<HTMLElement>();
@@ -105,6 +112,18 @@ function setupUniversalDownloadButton(tweetElement: HTMLElement): void {
 const isTargetImage = (img: HTMLImageElement) =>
   Boolean(img.src) && img.src.startsWith("https://pbs.twimg.com/media/");
 
+const scanNodeForTweets = (node: Node) => {
+  if (node instanceof HTMLElement && node.matches(TWEET_SELECTOR)) {
+    setupFollowBadgeForTweet(node);
+  }
+
+  if (node instanceof Element || node instanceof Document || node instanceof DocumentFragment) {
+    node
+      .querySelectorAll(TWEET_SELECTOR)
+      .forEach((tweet) => setupFollowBadgeForTweet(tweet as HTMLElement));
+  }
+};
+
 function setupImageInteraction(img: HTMLImageElement): void {
   if (processedImages.has(img) || !isTargetImage(img)) return;
 
@@ -164,10 +183,15 @@ const scanNodeForMedia = (node: Node) => {
   }
 };
 
+const scanNodeForTweetsAndMedia = (node: Node) => {
+  scanNodeForTweets(node);
+  scanNodeForMedia(node);
+};
+
 /**
- * 监听图片和视频元素并添加下载按钮
+ * 监听推文内容并添加关注标识、下载按钮
  */
-function watchForMedia(): void {
+function watchForTimelineContent(): void {
   const pendingNodes = new Set<Node>();
   let rafId: number | null = null;
 
@@ -179,7 +203,7 @@ function watchForMedia(): void {
     rafId = requestAnimationFrame(() => {
       rafId = null;
       pendingNodes.forEach((pendingNode) => {
-        scanNodeForMedia(pendingNode);
+        scanNodeForTweetsAndMedia(pendingNode);
       });
       pendingNodes.clear();
     });
@@ -258,8 +282,11 @@ function initializeApp(): void {
   // 初始化隐藏 Edit image 按钮的样式
   initializeEditImageButtonStyle();
 
-  // 开始监听图片和视频
-  watchForMedia();
+  // 初始化关注状态标识
+  initializeFollowBadgeSystem();
+
+  // 开始监听推文内容
+  watchForTimelineContent();
 }
 
 // 等待 DOM 加载完成后初始化

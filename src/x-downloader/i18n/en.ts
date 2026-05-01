@@ -22,6 +22,8 @@ export const enTranslations: LocaleData = {
       showButton: "Show universal download button",
       showButtonHelp:
         "Display unified download button in tweet actions, automatically detects media type",
+      showFollowBadge: "Show follow status badge",
+      showFollowBadgeHelp: "Display whether you follow the user beside the tweet username",
       autoLike: "Auto-like on download",
       autoLikeHelp: "Automatically like the tweet when downloading images or videos",
       hideEditImage: "Hide edit image button",

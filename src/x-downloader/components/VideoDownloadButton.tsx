@@ -1,6 +1,6 @@
 import { useState } from "preact/hooks";
 import { downloadFile, generateFileName, message, i18n, copyToClipboard } from "../../shared";
-import type { DownloaderSettings } from "../../shared/types";
+import type { DownloaderSettings } from "../types";
 import {
   extractVideoUrl,
   getTweetIdFromElement,

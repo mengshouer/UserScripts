@@ -35,6 +35,7 @@ Twitter/X 媒体下载器，支持图片和视频下载。
 - 可自定义开启/关闭图片下载按钮
 - 可自定义开启/关闭视频下载按钮
 - 通用下载按钮（在推文操作栏显示）
+- 关注状态标识（在推文用户名右侧显示是否已关注作者）
 - 下载时自动点赞功能
 - 自定义文件名格式（支持变量替换）
 
@@ -76,6 +77,7 @@ Twitter/X media downloader that supports downloading images and videos.
 - Toggle image download button on/off
 - Toggle video download button on/off
 - Universal download button (shows in tweet actions)
+- Follow status badge (shows whether you follow the tweet author beside the username)
 - Auto-like on download feature
 - Customizable filename format (with variable substitution)
 

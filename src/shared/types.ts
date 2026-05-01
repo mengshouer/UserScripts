@@ -61,27 +61,6 @@ export interface BaseSettings {
   readonly [key: string]: unknown;
 }
 
-export interface DownloaderSettings extends BaseSettings {
-  readonly fileName: string;
-  readonly showDownloadButton: boolean;
-  readonly videoFileName: string;
-  readonly showVideoDownloadButton: boolean;
-  readonly showUniversalDownloadButton: boolean;
-  readonly autoLikeOnDownload: boolean;
-  readonly messagePlacement:
-    | "top"
-    | "bottom"
-    | "top-left"
-    | "top-right"
-    | "bottom-left"
-    | "bottom-right";
-  readonly buttonPositionVertical: "top" | "bottom";
-  readonly buttonPositionHorizontal: "left" | "right";
-  readonly buttonPositionVerticalValue: string;
-  readonly buttonPositionHorizontalValue: string;
-  readonly hideEditImageButton: boolean;
-}
-
 // === 组件通用类型 ===
 export interface BaseComponentProps {
   readonly className?: string;

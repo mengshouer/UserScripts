@@ -1,5 +1,5 @@
 import { extractUrlInfo, message, i18n } from "../../shared";
-import type { DownloaderSettings } from "../../shared/types";
+import type { DownloaderSettings } from "../types";
 export { extractVideoUrl, findVideoContainer, findVideoPlayerContainer } from "./videoUtils";
 export { likeTweet } from "./likeUtils";
 

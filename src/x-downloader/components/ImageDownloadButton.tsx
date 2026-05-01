@@ -8,7 +8,7 @@ import {
   message,
   i18n,
 } from "../../shared";
-import type { DownloaderSettings } from "../../shared/types";
+import type { DownloaderSettings } from "../types";
 import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
 import { DownloadButton } from "./DownloadButton";
 import { handleDownloadError, likeTweet, getButtonPositionStyle } from "../utils";

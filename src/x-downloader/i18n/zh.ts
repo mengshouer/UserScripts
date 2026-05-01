@@ -21,6 +21,8 @@ export const zhTranslations: LocaleData = {
       title: "通用下载设置",
       showButton: "显示通用下载按钮",
       showButtonHelp: "在推文操作栏中显示统一的下载按钮，自动检测媒体类型",
+      showFollowBadge: "显示关注状态标识",
+      showFollowBadgeHelp: "在推文用户名右侧显示是否已关注该用户",
       autoLike: "下载时自动点赞",
       autoLikeHelp: "下载图片或视频时自动为推文点赞",
       hideEditImage: "隐藏图片编辑按钮",

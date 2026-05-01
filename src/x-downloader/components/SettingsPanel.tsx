@@ -147,6 +147,16 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
           <div style={{ marginTop: "16px" }}>
             <Checkbox
+              checked={settings.showFollowBadge}
+              onChange={(checked) => setSetting("showFollowBadge", checked)}
+            >
+              {t("settings.universal.showFollowBadge")}
+            </Checkbox>
+            <div style={helpTextStyle}>{t("settings.universal.showFollowBadgeHelp")}</div>
+          </div>
+
+          <div style={{ marginTop: "16px" }}>
+            <Checkbox
               checked={settings.autoLikeOnDownload}
               onChange={(checked) => setSetting("autoLikeOnDownload", checked)}
             >
