@@ -120,21 +120,8 @@ const collectFollowStates = (payload: unknown): void => {
   }
 };
 
-const getFetchUrl = (input: Parameters<typeof fetch>[0]): string => {
-  if (typeof input === "string") {
-    return input;
-  }
-
-  if (input instanceof URL) {
-    return input.href;
-  }
-
-  if (typeof input === "object" && input !== null && "url" in input) {
-    return String(input.url);
-  }
-
-  return "";
-};
+const getFetchUrl = (input: Parameters<typeof fetch>[0]): string =>
+  typeof input === "string" ? input : input instanceof URL ? input.href : (input as Request).url;
 
 const shouldReadGraphqlResponse = (url: string): boolean =>
   url.includes("/graphql/") || url.includes("/i/api/graphql/");

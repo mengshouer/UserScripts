@@ -19,8 +19,8 @@ const DEFAULT_SETTINGS: DownloaderSettings = {
   hideEditImageButton: false,
 };
 
-// 创建单例设置管理器
-const settingsHook = createSettingsHook(STORAGE_KEY, DEFAULT_SETTINGS);
+// 创建单例设置管理器，导出供非组件代码（如 utils 目录的纯 DOM 模块）共享同一份 signal
+export const settingsHook = createSettingsHook(STORAGE_KEY, DEFAULT_SETTINGS);
 
 // 创建 X-downloader 特定的设置管理
 export function useDownloaderSettings() {

@@ -61,4 +61,8 @@ export const enTranslations: LocaleData = {
     copied: "Copied to clipboard",
     copyFailed: "Copy failed",
   },
+  badge: {
+    following: "Following",
+    notFollowing: "Not following",
+  },
 };

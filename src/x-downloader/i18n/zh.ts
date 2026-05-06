@@ -60,4 +60,8 @@ export const zhTranslations: LocaleData = {
     copied: "已复制到剪贴板",
     copyFailed: "复制失败",
   },
+  badge: {
+    following: "已关注",
+    notFollowing: "未关注",
+  },
 };

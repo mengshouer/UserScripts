@@ -1,6 +1,12 @@
 import { getFollowState, subscribeFollowState } from "./followState";
-import { SETTINGS_CHANGE_EVENT, STORAGE_KEY } from "../../shared";
-import type { DownloaderSettings } from "../types";
+import {
+  TWEET_SELECTOR,
+  LIKE_BUTTON_SELECTOR,
+  UNLIKE_BUTTON_SELECTOR,
+  USER_NAME_SELECTOR,
+} from "./selectors";
+import { SETTINGS_CHANGE_EVENT, i18n } from "../../shared";
+import { settingsHook } from "../hooks/useDownloaderSettings";
 
 const BADGE_CLASS = "x-downloader-follow-badge";
 const STYLE_ID = "x-downloader-follow-badge-style";
@@ -9,54 +15,20 @@ const badgesByUser = new Map<string, Set<HTMLElement>>();
 const processedUserNameElements = new WeakSet<HTMLElement>();
 
 let unsubscribeFollowState: (() => void) | undefined;
+let initialized = false;
 
 const normalizeScreenName = (screenName: string): string => screenName.toLowerCase();
 
-const getSettings = (): Partial<DownloaderSettings> => {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") as Partial<DownloaderSettings>;
-  } catch {
-    return {};
-  }
-};
-
-const shouldShowFollowBadge = (): boolean => getSettings().showFollowBadge !== false;
-
-const getLabels = () => {
-  const language = document.documentElement.lang || navigator.language;
-  const isChinese = language.toLowerCase().startsWith("zh");
-
-  return {
-    following: isChinese ? "已关注" : "Following",
-    notFollowing: isChinese ? "未关注" : "Not following",
-  };
-};
-
-const extractScreenNameFromHref = (href: string | null): string | undefined => {
-  if (!href) {
-    return undefined;
-  }
-
-  const match = href.match(/^\/([^/?#]+)(?:[/?#]|$)/);
-  const screenName = match?.[1];
-
-  if (!screenName || RESERVED_ROUTE_NAMES.has(normalizeScreenName(screenName))) {
-    return undefined;
-  }
-
-  return screenName;
-};
+const shouldShowFollowBadge = (): boolean => settingsHook.signal.value.showFollowBadge !== false;
 
 const getScreenNameFromUserNameElement = (userNameElement: HTMLElement): string | undefined => {
   const links = Array.from(userNameElement.querySelectorAll<HTMLAnchorElement>('a[href^="/"]'));
-
   for (const link of links) {
-    const screenName = extractScreenNameFromHref(link.getAttribute("href"));
-    if (screenName) {
+    const screenName = link.getAttribute("href")?.match(/^\/([^/?#]+)/)?.[1];
+    if (screenName && !RESERVED_ROUTE_NAMES.has(normalizeScreenName(screenName))) {
       return screenName;
     }
   }
-
   return undefined;
 };
 
@@ -83,6 +55,11 @@ const ensureFollowBadgeStyle = (): void => {
       white-space: nowrap;
       pointer-events: none;
       user-select: none;
+      transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
     }
 
     .${BADGE_CLASS}[hidden] {
@@ -99,6 +76,23 @@ const ensureFollowBadgeStyle = (): void => {
       color: rgb(113, 118, 123);
       background-color: rgba(113, 118, 123, 0.14);
       border: 1px solid rgba(113, 118, 123, 0.35);
+    }
+
+    .${BADGE_CLASS}[data-follow-state="not-following"][data-like-alert="true"] {
+      color: rgb(255, 212, 128);
+      background-color: rgba(255, 149, 0, 0.22);
+      border-color: rgba(255, 149, 0, 0.75);
+      box-shadow: 0 0 0 2px rgba(255, 149, 0, 0.16);
+      animation: x-downloader-follow-badge-pulse 1.1s ease-out 1;
+    }
+
+    @keyframes x-downloader-follow-badge-pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(255, 149, 0, 0.42);
+      }
+      100% {
+        box-shadow: 0 0 0 6px rgba(255, 149, 0, 0);
+      }
     }
   `;
   document.head.appendChild(styleElement);
@@ -136,17 +130,59 @@ const updateBadge = (badge: HTMLElement, screenName: string): void => {
     badge.hidden = true;
     badge.textContent = "";
     badge.removeAttribute("aria-label");
+    delete badge.dataset.followState;
     return;
   }
 
-  const labels = getLabels();
-  const label = following ? labels.following : labels.notFollowing;
+  const label = following ? i18n.t("badge.following") : i18n.t("badge.notFollowing");
 
   badge.hidden = false;
   badge.dataset.followState = following ? "following" : "not-following";
+  if (following) {
+    delete badge.dataset.likeAlert;
+  }
   badge.textContent = label;
   badge.title = `@${screenName}: ${label}`;
   badge.setAttribute("aria-label", badge.title);
+};
+
+export const setTweetFollowBadgeLikeAlert = (tweetElement: HTMLElement, liked: boolean): void => {
+  const badge = tweetElement.querySelector<HTMLElement>(`${USER_NAME_SELECTOR} .${BADGE_CLASS}`);
+
+  if (!badge) {
+    return;
+  }
+
+  if (liked) {
+    badge.dataset.likeAlert = "true";
+    return;
+  }
+
+  delete badge.dataset.likeAlert;
+};
+
+const updateLikeAlertAfterDomChange = (
+  tweetElement: HTMLElement,
+  action: "like" | "unlike",
+): void => {
+  const isLiked = Boolean(tweetElement.querySelector(UNLIKE_BUTTON_SELECTOR));
+
+  if (action === "like") {
+    if (isLiked) {
+      setTweetFollowBadgeLikeAlert(tweetElement, true);
+    }
+    return;
+  }
+
+  if (!isLiked || tweetElement.querySelector(LIKE_BUTTON_SELECTOR)) {
+    setTweetFollowBadgeLikeAlert(tweetElement, false);
+  }
+};
+
+const scheduleLikeAlertUpdate = (tweetElement: HTMLElement, action: "like" | "unlike"): void => {
+  [100, 500, 1200].forEach((delayMs) => {
+    window.setTimeout(() => updateLikeAlertAfterDomChange(tweetElement, action), delayMs);
+  });
 };
 
 const updateBadgesForUser = (screenName: string): void => {
@@ -171,6 +207,10 @@ const updateBadgesForUser = (screenName: string): void => {
   }
 };
 
+const refreshAllBadgeLabels = (): void => {
+  badgesByUser.forEach((_, screenName) => updateBadgesForUser(screenName));
+};
+
 const removeExistingBadge = (userNameElement: HTMLElement): void => {
   const badge = userNameElement.querySelector<HTMLElement>(`.${BADGE_CLASS}`);
 
@@ -182,7 +222,34 @@ const removeExistingBadge = (userNameElement: HTMLElement): void => {
   badge.remove();
 };
 
+const handleDocumentClick = (event: MouseEvent): void => {
+  const target = event.target;
+  if (!(target instanceof Element)) {
+    return;
+  }
+
+  const button = target.closest<HTMLButtonElement>(
+    `${LIKE_BUTTON_SELECTOR}, ${UNLIKE_BUTTON_SELECTOR}`,
+  );
+  if (!button) {
+    return;
+  }
+
+  const tweetElement = button.closest<HTMLElement>(TWEET_SELECTOR);
+  if (!tweetElement) {
+    return;
+  }
+
+  const action = button.getAttribute("data-testid") === "unlike" ? "unlike" : "like";
+  scheduleLikeAlertUpdate(tweetElement, action);
+};
+
 export const initializeFollowBadgeSystem = (): void => {
+  if (initialized) {
+    return;
+  }
+  initialized = true;
+
   ensureFollowBadgeStyle();
 
   if (!unsubscribeFollowState) {
@@ -190,6 +257,9 @@ export const initializeFollowBadgeSystem = (): void => {
       updateBadgesForUser(screenName);
     });
   }
+
+  i18n.subscribe(refreshAllBadgeLabels);
+  document.addEventListener("click", handleDocumentClick, true);
 
   window.addEventListener(SETTINGS_CHANGE_EVENT, () => {
     if (!shouldShowFollowBadge()) {
@@ -199,13 +269,13 @@ export const initializeFollowBadgeSystem = (): void => {
     }
 
     document
-      .querySelectorAll<HTMLElement>('article[data-testid="tweet"]')
+      .querySelectorAll<HTMLElement>(TWEET_SELECTOR)
       .forEach((tweet) => setupFollowBadgeForTweet(tweet));
   });
 };
 
 export const setupFollowBadgeForTweet = (tweetElement: HTMLElement): void => {
-  const userNameElement = tweetElement.querySelector<HTMLElement>('[data-testid="User-Name"]');
+  const userNameElement = tweetElement.querySelector<HTMLElement>(USER_NAME_SELECTOR);
 
   if (!userNameElement) {
     return;

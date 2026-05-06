@@ -1,8 +1,8 @@
 import { getCookie } from "../../shared/utils/cookie";
 import { message, i18n } from "../../shared";
+import { setTweetFollowBadgeLikeAlert } from "./followBadge";
+import { LIKE_BUTTON_SELECTOR, UNLIKE_BUTTON_SELECTOR } from "./selectors";
 
-const LIKE_BUTTON_SELECTOR = 'button[data-testid="like"]';
-const UNLIKE_BUTTON_SELECTOR = 'button[data-testid="unlike"]';
 const DOM_CHECK_RETRIES = 5;
 const DOM_CHECK_INTERVAL_MS = 200;
 
@@ -41,6 +41,11 @@ interface TwitterApiResponse {
 }
 
 type DomLikeStatus = "success" | "already-liked" | "fallback";
+interface LikeTweetResult {
+  success: boolean;
+  message?: string;
+  likedThisSession?: boolean;
+}
 
 const TWITTER_API_ENDPOINT = "https://x.com/i/api/graphql/lI07N6Otwv1PhnEgXILM7A/FavoriteTweet";
 const TWITTER_BEARER_TOKEN =
@@ -49,7 +54,7 @@ const TWITTER_BEARER_TOKEN =
 export async function likeTweet(
   tweetContainer: HTMLElement | null,
   tweetId: string,
-): Promise<{ success: boolean; message?: string }> {
+): Promise<LikeTweetResult> {
   try {
     if (tweetContainer) {
       const domResult = await tryLikeViaDom(tweetContainer);
@@ -59,7 +64,11 @@ export async function likeTweet(
       }
     }
 
-    return await likeTweetViaApi(tweetId);
+    const apiResult = await likeTweetViaApi(tweetId);
+    if (tweetContainer && apiResult.likedThisSession) {
+      setTweetFollowBadgeLikeAlert(tweetContainer, true);
+    }
+    return apiResult;
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     return { success: false, message: i18n.t("messages.likeFailed", { error: errorMsg }) };
@@ -90,6 +99,7 @@ async function tryLikeViaDom(tweetContainer: HTMLElement): Promise<DomLikeStatus
   const domUpdated = await waitForDomLikeState(tweetContainer, likeButton);
 
   if (domUpdated) {
+    setTweetFollowBadgeLikeAlert(tweetContainer, true);
     message.info(i18n.t("messages.likeSuccess"));
     return "success";
   }
@@ -150,7 +160,7 @@ function getTwitterHeaders(): TwitterApiHeaders | null {
   };
 }
 
-async function likeTweetViaApi(tweetId: string): Promise<{ success: boolean; message?: string }> {
+async function likeTweetViaApi(tweetId: string): Promise<LikeTweetResult> {
   const headers = getTwitterHeaders();
   if (!headers) {
     return { success: false, message: i18n.t("messages.cannotGetAuthInfo") };
@@ -194,7 +204,7 @@ async function likeTweetViaApi(tweetId: string): Promise<{ success: boolean; mes
 
     if (data?.favorite_tweet === "Done") {
       message.info(i18n.t("messages.likeSuccess"));
-      return { success: true };
+      return { success: true, likedThisSession: true };
     }
 
     return { success: false, message: i18n.t("messages.likeResponseError") };
