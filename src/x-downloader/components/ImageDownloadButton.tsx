@@ -20,6 +20,7 @@ interface ImageDownloadOptions {
   skipAutoLike?: boolean;
   imageIndex?: number;
   isShiftPressed?: boolean;
+  showSuccessMessage?: boolean;
   tweetContainer: HTMLElement | null;
 }
 
@@ -44,41 +45,45 @@ export const handleImageDownload = async ({
   skipAutoLike = false,
   imageIndex,
   isShiftPressed = false,
+  showSuccessMessage = true,
   tweetContainer,
-}: ImageDownloadOptions) => {
+}: ImageDownloadOptions): Promise<boolean> => {
   setIsDownloading(true);
-  const { picname, ext } = extractFileInfo(targetImage.src);
-  let urlInfo;
-
-  if (window.location.href.includes("photo")) {
-    urlInfo = extractUrlInfo(window.location.href);
-  } else {
-    const firstA = findFirstAnchor(targetImage);
-    if (!firstA) return;
-    urlInfo = extractUrlInfo(firstA.href);
-  }
-
-  // 优先使用传入的 imageIndex，否则使用 URL 中解析的 picno
-  const picNo = imageIndex ? imageIndex : parseInt(urlInfo.picno) - 1;
-
-  const filename = generateFileName(settings.fileName, {
-    Userid: urlInfo.userid,
-    Tid: urlInfo.tid,
-    Time: `${Date.now()}`,
-    PicName: picname,
-    PicNo: `${picNo}`,
-  });
-
-  const downloadUrl = `https://pbs.twimg.com/media/${picname}?format=${ext}&name=orig`;
-
   try {
+    const { picname, ext } = extractFileInfo(targetImage.src);
+    let urlInfo;
+
+    if (window.location.href.includes("photo")) {
+      urlInfo = extractUrlInfo(window.location.href);
+    } else {
+      const firstA = findFirstAnchor(targetImage);
+      if (!firstA) return false;
+      urlInfo = extractUrlInfo(firstA.href);
+    }
+
+    // 优先使用传入的 imageIndex，否则使用 URL 中解析的 picno
+    const picNo = imageIndex ?? parseInt(urlInfo.picno) - 1;
+
+    const filename = generateFileName(settings.fileName, {
+      Userid: urlInfo.userid,
+      Tid: urlInfo.tid,
+      Time: `${Date.now()}`,
+      PicName: picname,
+      PicNo: `${picNo}`,
+    });
+
+    const downloadUrl = `https://pbs.twimg.com/media/${picname}?format=${ext}&name=orig`;
+
     // 如果按住 Shift，直接复制链接
     if (isShiftPressed) {
       await copyToClipboard(downloadUrl);
-      return;
+      return true;
     }
 
     await downloadFile(downloadUrl, `${filename}.${ext}`);
+    if (showSuccessMessage) {
+      message.success(i18n.t("messages.downloadSuccess"));
+    }
 
     if (settings.autoLikeOnDownload && urlInfo.tid && !skipAutoLike) {
       const likeResult = await likeTweet(tweetContainer, urlInfo.tid);
@@ -86,8 +91,11 @@ export const handleImageDownload = async ({
         message.error(likeResult.message);
       }
     }
+
+    return true;
   } catch (error) {
     handleDownloadError(error, i18n.t("messages.imageDownloadFailed"));
+    return false;
   } finally {
     setIsDownloading(false);
   }
@@ -108,15 +116,15 @@ export function ImageDownloadButton({ targetImage, tweetContainer }: ImageDownlo
   return (
     <DownloadButton
       isDownloading={isDownloading}
-      onClick={(_, isShiftPressed) =>
-        handleImageDownload({
+      onClick={async (_, isShiftPressed) => {
+        await handleImageDownload({
           setIsDownloading,
           targetImage,
           settings,
           isShiftPressed,
           tweetContainer,
-        })
-      }
+        });
+      }}
       title={i18n.t("ui.downloadImage")}
       style={getButtonPositionStyle(settings)}
     />

@@ -26,6 +26,9 @@ export const enTranslations: LocaleData = {
       showFollowBadgeHelp: "Display whether you follow the user beside the tweet username",
       autoLike: "Auto-like on download",
       autoLikeHelp: "Automatically like the tweet when downloading images or videos",
+      autoLikeApiFallback: "Use API fallback when auto-like fails",
+      autoLikeApiFallbackHelp:
+        "Directly calls the FavoriteTweet API when the native X like response cannot be observed. Enabling this may increase bot-detection risk.",
       hideEditImage: "Hide edit image button",
       hideEditImageHelp: 'Hide the "Edit image" button on tweet images',
     },

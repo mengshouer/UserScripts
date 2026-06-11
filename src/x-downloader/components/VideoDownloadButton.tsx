@@ -24,6 +24,7 @@ interface VideoDownloadOptions {
   settings: DownloaderSettings;
   skipAutoLike?: boolean;
   isShiftPressed?: boolean;
+  showSuccessMessage?: boolean;
 }
 
 export const handleVideoDownload = async ({
@@ -33,27 +34,28 @@ export const handleVideoDownload = async ({
   settings,
   skipAutoLike = false,
   isShiftPressed = false,
-}: VideoDownloadOptions) => {
+  showSuccessMessage = true,
+}: VideoDownloadOptions): Promise<boolean> => {
   setIsDownloading(true);
   try {
     const username = getUserIdFromTweetContainer(tweetContainer);
     const tweetId = getTweetIdFromElement(tweetContainer, username);
     if (!tweetId) {
       message.error(i18n.t("messages.cannotRecognizeTweet"));
-      return;
+      return false;
     }
 
     const videoUrl =
       src && src.startsWith("https://video.twimg.com") ? src : await extractVideoUrl(tweetId);
     if (!videoUrl) {
       message.error(i18n.t("messages.videoLinkNotFound"));
-      return;
+      return false;
     }
 
     // 如果按住 Shift，直接复制链接
     if (isShiftPressed) {
       await copyToClipboard(videoUrl);
-      return;
+      return true;
     }
 
     const urlInfo = { userid: username, tid: tweetId };
@@ -65,6 +67,9 @@ export const handleVideoDownload = async ({
     });
 
     await downloadFile(videoUrl, `${filename}.mp4`);
+    if (showSuccessMessage) {
+      message.success(i18n.t("messages.videoDownloadSuccess"));
+    }
 
     if (settings.autoLikeOnDownload && tweetId && !skipAutoLike) {
       const likeResult = await likeTweet(tweetContainer, tweetId);
@@ -72,8 +77,11 @@ export const handleVideoDownload = async ({
         message.error(likeResult.message);
       }
     }
+
+    return true;
   } catch (error) {
     handleDownloadError(error, i18n.t("messages.videoDownloadFailed"));
+    return false;
   } finally {
     setIsDownloading(false);
   }
@@ -91,15 +99,15 @@ export function VideoDownloadButton({ src, tweetContainer }: VideoDownloadButton
   return (
     <DownloadButton
       isDownloading={isDownloading}
-      onClick={(_, isShiftPressed) =>
-        handleVideoDownload({
+      onClick={async (_, isShiftPressed) => {
+        await handleVideoDownload({
           setIsDownloading,
           src,
           tweetContainer,
           settings,
           isShiftPressed,
-        })
-      }
+        });
+      }}
       title={isDownloading ? i18n.t("ui.downloading") : i18n.t("ui.downloadVideo")}
       style={getButtonPositionStyle(settings)}
     />

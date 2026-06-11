@@ -25,6 +25,9 @@ export const zhTranslations: LocaleData = {
       showFollowBadgeHelp: "在推文用户名右侧显示是否已关注该用户",
       autoLike: "下载时自动点赞",
       autoLikeHelp: "下载图片或视频时自动为推文点赞",
+      autoLikeApiFallback: "点赞失败时使用 API fallback",
+      autoLikeApiFallbackHelp:
+        "当无法监听到 X 原生点赞响应时，直接调用 FavoriteTweet API 重试。开启后可能增加机器人检测风险。",
       hideEditImage: "隐藏图片编辑按钮",
       hideEditImageHelp: '隐藏推文图片上的 "Edit image" 按钮',
     },

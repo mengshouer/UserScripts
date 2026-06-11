@@ -1,21 +1,20 @@
-import { getCookie } from "../../shared/utils/cookie";
 import { message, i18n } from "../../shared";
+import { getCookie } from "../../shared/utils/cookie";
+import { settingsHook } from "../hooks/useDownloaderSettings";
+import { subscribeFavoriteTweetResponse } from "./favoriteTweetResponse";
 import { setTweetFollowBadgeLikeAlert } from "./followBadge";
 import { LIKE_BUTTON_SELECTOR, UNLIKE_BUTTON_SELECTOR } from "./selectors";
 
-const DOM_CHECK_RETRIES = 5;
-const DOM_CHECK_INTERVAL_MS = 200;
+const LIKE_RESPONSE_TIMEOUT_MS = 8000;
+const TWITTER_API_ENDPOINT = "https://x.com/i/api/graphql/lI07N6Otwv1PhnEgXILM7A/FavoriteTweet";
+const TWITTER_BEARER_TOKEN =
+  "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA";
 
-interface TwitterApiHeaders extends Record<string, string> {
-  accept: string;
-  "accept-language": string;
-  authorization: string;
-  "content-type": string;
-  "x-csrf-token": string;
-  "x-twitter-active-user": string;
-  "x-twitter-auth-type": string;
-  "x-twitter-client-language": string;
-  cookie: string;
+interface LikeTweetResult {
+  success: boolean;
+  message?: string;
+  likedThisSession?: boolean;
+  canUseApiFallback?: boolean;
 }
 
 interface LikeTweetPayload {
@@ -26,11 +25,9 @@ interface LikeTweetPayload {
 }
 
 interface TwitterApiError {
-  message: string;
-  code: number;
-  kind: string;
-  name: string;
-  source: string;
+  message?: string;
+  code?: number;
+  name?: string;
 }
 
 interface TwitterApiResponse {
@@ -40,129 +37,153 @@ interface TwitterApiResponse {
   errors?: TwitterApiError[];
 }
 
-type DomLikeStatus = "success" | "already-liked" | "fallback";
-interface LikeTweetResult {
-  success: boolean;
-  message?: string;
-  likedThisSession?: boolean;
+interface PendingFavoriteTweetResult {
+  promise: Promise<LikeTweetResult>;
+  cancel: () => void;
 }
-
-const TWITTER_API_ENDPOINT = "https://x.com/i/api/graphql/lI07N6Otwv1PhnEgXILM7A/FavoriteTweet";
-const TWITTER_BEARER_TOKEN =
-  "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA";
 
 export async function likeTweet(
   tweetContainer: HTMLElement | null,
   tweetId: string,
 ): Promise<LikeTweetResult> {
   try {
-    if (tweetContainer) {
-      const domResult = await tryLikeViaDom(tweetContainer);
+    if (!tweetContainer) {
+      return await fallbackLikeViaApi(tweetId, {
+        fallbackMessage: i18n.t("messages.likeButtonNotFound"),
+      });
+    }
 
-      if (domResult === "success" || domResult === "already-liked") {
-        return { success: true };
+    const domResult = await tryLikeViaDom(tweetContainer, tweetId);
+
+    if (!domResult.success && domResult.canUseApiFallback) {
+      const fallbackResult = await fallbackLikeViaApi(tweetId, {
+        fallbackMessage: domResult.message,
+      });
+
+      if (fallbackResult.likedThisSession) {
+        setTweetFollowBadgeLikeAlert(tweetContainer, true);
       }
+
+      return fallbackResult;
     }
 
-    const apiResult = await likeTweetViaApi(tweetId);
-    if (tweetContainer && apiResult.likedThisSession) {
-      setTweetFollowBadgeLikeAlert(tweetContainer, true);
-    }
-    return apiResult;
+    return domResult;
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     return { success: false, message: i18n.t("messages.likeFailed", { error: errorMsg }) };
   }
 }
 
-async function tryLikeViaDom(tweetContainer: HTMLElement): Promise<DomLikeStatus> {
+async function tryLikeViaDom(
+  tweetContainer: HTMLElement,
+  tweetId: string,
+): Promise<LikeTweetResult> {
   const unlikeButton = tweetContainer.querySelector(
     UNLIKE_BUTTON_SELECTOR,
   ) as HTMLButtonElement | null;
 
   if (unlikeButton) {
-    return "already-liked";
+    return { success: true };
   }
 
   const likeButton = tweetContainer.querySelector(LIKE_BUTTON_SELECTOR) as HTMLButtonElement | null;
 
   if (!likeButton) {
-    return "fallback";
+    return {
+      success: false,
+      message: i18n.t("messages.likeButtonNotFound"),
+      canUseApiFallback: true,
+    };
   }
+
+  const pendingFavoriteTweet = waitForFavoriteTweetResponse(tweetId);
 
   try {
     likeButton.click();
   } catch {
-    return "fallback";
+    pendingFavoriteTweet.cancel();
+    return {
+      success: false,
+      message: i18n.t("messages.likeResponseError"),
+      canUseApiFallback: true,
+    };
   }
 
-  const domUpdated = await waitForDomLikeState(tweetContainer, likeButton);
+  const likeResult = await pendingFavoriteTweet.promise;
 
-  if (domUpdated) {
-    setTweetFollowBadgeLikeAlert(tweetContainer, true);
-    message.info(i18n.t("messages.likeSuccess"));
-    return "success";
+  if (likeResult.success) {
+    if (likeResult.likedThisSession) {
+      setTweetFollowBadgeLikeAlert(tweetContainer, true);
+      message.info(i18n.t("messages.likeSuccess"));
+    } else {
+      message.info(i18n.t("messages.tweetAlreadyLiked"));
+    }
   }
 
-  return "fallback";
+  return likeResult;
 }
 
-async function waitForDomLikeState(
-  tweetContainer: HTMLElement,
-  likeButton: HTMLButtonElement,
-): Promise<boolean> {
-  for (let attempt = 0; attempt < DOM_CHECK_RETRIES; attempt++) {
-    const unlikeButton = tweetContainer.querySelector(UNLIKE_BUTTON_SELECTOR);
-    if (unlikeButton) {
-      return true;
+function waitForFavoriteTweetResponse(tweetId: string): PendingFavoriteTweetResult {
+  let timeoutId: number | undefined;
+  let unsubscribe: (() => void) | undefined;
+
+  const cleanup = () => {
+    if (timeoutId !== undefined) {
+      window.clearTimeout(timeoutId);
+      timeoutId = undefined;
     }
+    unsubscribe?.();
+    unsubscribe = undefined;
+  };
 
-    const dataTestId = likeButton.getAttribute("data-testid");
-    const ariaPressed = likeButton.getAttribute("aria-pressed");
-    if (dataTestId === "unlike" || ariaPressed === "true") {
-      return true;
-    }
+  const promise = new Promise<LikeTweetResult>((resolve) => {
+    timeoutId = window.setTimeout(() => {
+      cleanup();
+      resolve({
+        success: false,
+        message: i18n.t("messages.likeResponseError"),
+        canUseApiFallback: true,
+      });
+    }, LIKE_RESPONSE_TIMEOUT_MS);
 
-    await new Promise((resolve) => window.setTimeout(resolve, DOM_CHECK_INTERVAL_MS));
-  }
+    unsubscribe = subscribeFavoriteTweetResponse((result) => {
+      if (result.tweetId !== tweetId) {
+        return;
+      }
 
-  const unlikeButton = tweetContainer.querySelector(UNLIKE_BUTTON_SELECTOR);
-  if (unlikeButton) {
-    return true;
-  }
+      cleanup();
+      if (result.success) {
+        resolve(
+          result.likedThisSession ? { success: true, likedThisSession: true } : { success: true },
+        );
+        return;
+      }
 
-  const dataTestId = likeButton.getAttribute("data-testid");
-  if (dataTestId === "unlike") {
-    return true;
-  }
-
-  return likeButton.getAttribute("aria-pressed") === "true";
-}
-
-function getTwitterHeaders(): TwitterApiHeaders | null {
-  const csrfToken = getCookie("ct0");
-  const cookies = document.cookie;
-
-  if (!csrfToken || !cookies) {
-    return null;
-  }
+      const error = result.errorMessage || i18n.t("messages.likeResponseError");
+      resolve({ success: false, message: error });
+    });
+  });
 
   return {
-    accept: "*/*",
-    "accept-language": "en-US,en;q=0.9",
-    authorization: TWITTER_BEARER_TOKEN,
-    "content-type": "application/json",
-    "x-csrf-token": csrfToken,
-    "x-twitter-active-user": "yes",
-    "x-twitter-auth-type": "OAuth2Session",
-    "x-twitter-client-language": "en",
-    cookie: cookies,
+    promise,
+    cancel: cleanup,
   };
 }
 
+async function fallbackLikeViaApi(
+  tweetId: string,
+  { fallbackMessage }: { fallbackMessage?: string | undefined },
+): Promise<LikeTweetResult> {
+  if (!settingsHook.signal.value.autoLikeApiFallback) {
+    return { success: false, message: fallbackMessage || i18n.t("messages.likeResponseError") };
+  }
+
+  return await likeTweetViaApi(tweetId);
+}
+
 async function likeTweetViaApi(tweetId: string): Promise<LikeTweetResult> {
-  const headers = getTwitterHeaders();
-  if (!headers) {
+  const csrfToken = getCookie("ct0");
+  if (!csrfToken) {
     return { success: false, message: i18n.t("messages.cannotGetAuthInfo") };
   }
 
@@ -176,8 +197,18 @@ async function likeTweetViaApi(tweetId: string): Promise<LikeTweetResult> {
   try {
     const response = await fetch(TWITTER_API_ENDPOINT, {
       method: "POST",
-      headers,
+      headers: {
+        accept: "*/*",
+        "accept-language": "en-US,en;q=0.9",
+        authorization: TWITTER_BEARER_TOKEN,
+        "content-type": "application/json",
+        "x-csrf-token": csrfToken,
+        "x-twitter-active-user": "yes",
+        "x-twitter-auth-type": "OAuth2Session",
+        "x-twitter-client-language": "en",
+      },
       body: JSON.stringify(payload),
+      credentials: "include",
     });
 
     if (!response.ok) {
@@ -198,7 +229,7 @@ async function likeTweetViaApi(tweetId: string): Promise<LikeTweetResult> {
         return { success: true };
       }
 
-      const errorMsg = errorMessage || "未知错误";
+      const errorMsg = errorMessage || i18n.t("messages.likeResponseError");
       return { success: false, message: i18n.t("messages.likeFailed", { error: errorMsg }) };
     }
 

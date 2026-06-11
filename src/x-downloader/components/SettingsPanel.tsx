@@ -167,6 +167,16 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
           <div style={{ marginTop: "16px" }}>
             <Checkbox
+              checked={settings.autoLikeApiFallback}
+              onChange={(checked) => setSetting("autoLikeApiFallback", checked)}
+            >
+              {t("settings.universal.autoLikeApiFallback")}
+            </Checkbox>
+            <div style={helpTextStyle}>{t("settings.universal.autoLikeApiFallbackHelp")}</div>
+          </div>
+
+          <div style={{ marginTop: "16px" }}>
+            <Checkbox
               checked={settings.hideEditImageButton}
               onChange={(checked) => setSetting("hideEditImageButton", checked)}
             >

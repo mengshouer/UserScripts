@@ -117,38 +117,44 @@ export function UniversalDownloadButton({ tweetContainer }: UniversalDownloadBut
         ] as HTMLImageElement;
 
         if (targetImage) {
-          await handleImageDownload({
+          const downloaded = await handleImageDownload({
             setIsDownloading: nopSetDownloading,
             targetImage,
             settings,
             imageIndex: photoIndex,
+            showSuccessMessage: false,
             tweetContainer: container,
           });
-          message.success(i18n.t("messages.imagesDownloadSuccess", { count: 1 }));
+          if (downloaded) {
+            message.success(i18n.t("messages.imagesDownloadSuccess", { count: 1 }));
+          }
           return;
         }
       }
-      throw new Error("Image not found in preview mode");
+      message.error(i18n.t("messages.imageDownloadFailed"));
+      return;
     }
 
     // 非预览模式，下载所有可下载的图片
     const images = getDownloadableImages(container);
 
-    const downloadPromises = images.map((img, index) => {
-      if (!img) return Promise.resolve();
-      return handleImageDownload({
-        setIsDownloading: nopSetDownloading,
-        targetImage: img,
-        settings,
-        skipAutoLike: index > 0, // 只有第一张图片允许点赞，其他跳过
-        imageIndex: index,
-        tweetContainer: container,
-      });
-    });
+    const downloadPromises = images
+      .filter((img) => img)
+      .map((img, index) =>
+        handleImageDownload({
+          setIsDownloading: nopSetDownloading,
+          targetImage: img,
+          settings,
+          skipAutoLike: index > 0, // 只有第一张图片允许点赞，其他跳过
+          imageIndex: index,
+          showSuccessMessage: false,
+          tweetContainer: container,
+        }),
+      );
 
     const results = await Promise.allSettled(downloadPromises);
 
-    const failed = results.filter((result) => result.status === "rejected");
+    const failed = results.filter((result) => result.status === "rejected" || !result.value);
     const successCount = results.length - failed.length;
     if (successCount === 0) {
       message.error(i18n.t("messages.imageDownloadFailed"));
@@ -168,12 +174,17 @@ export function UniversalDownloadButton({ tweetContainer }: UniversalDownloadBut
 
     if (!video) return;
 
-    handleVideoDownload({
+    const downloaded = await handleVideoDownload({
       setIsDownloading: nopSetDownloading,
       src: video.src,
       tweetContainer: container,
       settings,
-    }).then(() => message.success(i18n.t("messages.videoDownloadSuccess")));
+      showSuccessMessage: false,
+    });
+
+    if (downloaded) {
+      message.success(i18n.t("messages.videoDownloadSuccess"));
+    }
   };
 
   const getTitle = () => {
