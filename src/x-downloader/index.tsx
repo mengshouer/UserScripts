@@ -2,7 +2,7 @@
 // @name         X(Twitter) Downloader
 // @name:zh-CN   X（Twitter）下载器
 // @author       mengshouer
-// @version      1.2.0
+// @version      1.2.1
 // @description  For X(Twitter) add download buttons for images and videos. Settings available by hovering mouse to the bottom left corner or via Tampermonkey menu.
 // @description:zh-CN  为 X(Twitter) 的图片和视频添加下载按钮。鼠标移入浏览器左下角或油猴菜单可打开设置。
 // @include      *://twitter.com/*

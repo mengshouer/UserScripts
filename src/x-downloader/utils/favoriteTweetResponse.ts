@@ -222,7 +222,8 @@ const readFavoriteTweetFromXhr = (tweetId: string, xhr: XMLHttpRequest): void =>
 
 export const installFavoriteTweetResponseInterceptor = (): void => {
   const pageWindow = getPageWindow();
-  const xhrUrls = new WeakMap<XMLHttpRequest, string>();
+  const xhrBodies = new WeakMap<XMLHttpRequest, unknown>();
+  const xhrInstances = new WeakSet<XMLHttpRequest>();
 
   if (pageWindow.__xDownloaderFavoriteTweetInterceptorInstalled) {
     return;
@@ -233,6 +234,7 @@ export const installFavoriteTweetResponseInterceptor = (): void => {
   const originalFetch = pageWindow.fetch.bind(pageWindow);
   const originalXhrOpen = pageWindow.XMLHttpRequest.prototype.open;
   const originalXhrSend = pageWindow.XMLHttpRequest.prototype.send;
+  const nativeAddEventListener = pageWindow.XMLHttpRequest.prototype.addEventListener;
 
   pageWindow.fetch = ((...args: Parameters<typeof fetch>) => {
     const requestUrl = getFetchUrl(args[0]);
@@ -263,10 +265,9 @@ export const installFavoriteTweetResponseInterceptor = (): void => {
     username?: string | null,
     password?: string | null,
   ) {
-    const requestUrl = String(url);
-
-    if (requestUrl) {
-      xhrUrls.set(this, requestUrl);
+    // 标记这是我们需要拦截的 XHR 实例
+    if (isFavoriteTweetUrl(String(url))) {
+      xhrInstances.add(this);
     }
 
     if (typeof async === "boolean") {
@@ -280,16 +281,24 @@ export const installFavoriteTweetResponseInterceptor = (): void => {
   pageWindow.XMLHttpRequest.prototype.send = function sendWithFavoriteTweetTracking(
     ...args: Parameters<XMLHttpRequest["send"]>
   ) {
-    const requestUrl = xhrUrls.get(this);
-    const tweetId =
-      requestUrl && isFavoriteTweetUrl(requestUrl)
-        ? readTweetIdFromBodyText(bodyToText(args[0]))
-        : undefined;
+    // 只对标记的 FavoriteTweet 请求注册监听器
+    if (xhrInstances.has(this)) {
+      const capturedThis = this;
+      xhrBodies.set(this, args[0]);
 
-    if (tweetId) {
-      this.addEventListener("loadend", () => readFavoriteTweetFromXhr(tweetId, this), {
-        once: true,
-      });
+      // 使用原生 addEventListener 直接挂载，绕过所有包装层
+      nativeAddEventListener.call(
+        this,
+        "loadend",
+        function () {
+          const body = xhrBodies.get(capturedThis);
+          const tweetId = readTweetIdFromBodyText(bodyToText(body));
+          if (tweetId) {
+            readFavoriteTweetFromXhr(tweetId, capturedThis);
+          }
+        },
+        { once: true },
+      );
     }
 
     return originalXhrSend.apply(this, args);

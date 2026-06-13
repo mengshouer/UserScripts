@@ -27,7 +27,7 @@ export const zhTranslations: LocaleData = {
       autoLikeHelp: "下载图片或视频时自动为推文点赞。自动化点赞可能增加账号风控风险。",
       downloadOnManualLike: "手动点赞后自动下载",
       downloadOnManualLikeHelp:
-        "手动点赞后自动下载推文中的图片或视频（无法确认点赞结果时仍会下载并提示）",
+        "手动点赞后自动下载推文中的图片或视频（无法确认点赞结果时仍会下载并提示）。按住 Shift 键点赞可临时禁用自动下载。",
       autoLikeApiFallback: "点赞失败时使用 API fallback",
       autoLikeApiFallbackHelp:
         "当无法监听到 X 原生点赞响应时，直接调用 FavoriteTweet API 重试。开启后可能增加机器人检测风险。",

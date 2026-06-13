@@ -29,7 +29,7 @@ export const enTranslations: LocaleData = {
         "Automatically like the tweet when downloading images or videos. Automated likes may increase account risk.",
       downloadOnManualLike: "Download on manual like",
       downloadOnManualLikeHelp:
-        "Automatically download tweet media after you manually like a tweet. If the like result cannot be confirmed, the download still proceeds with a notice.",
+        "Automatically download tweet media after you manually like a tweet. If the like result cannot be confirmed, the download still proceeds with a notice. Hold Shift while clicking like to temporarily disable auto-download.",
       autoLikeApiFallback: "Use API fallback when auto-like fails",
       autoLikeApiFallbackHelp:
         "Directly calls the FavoriteTweet API when the native X like response cannot be observed. Enabling this may increase bot-detection risk.",
