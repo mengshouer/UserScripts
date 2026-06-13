@@ -157,6 +157,16 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
           <div style={{ marginTop: "16px" }}>
             <Checkbox
+              checked={settings.downloadOnManualLike}
+              onChange={(checked) => setSetting("downloadOnManualLike", checked)}
+            >
+              {t("settings.universal.downloadOnManualLike")}
+            </Checkbox>
+            <div style={helpTextStyle}>{t("settings.universal.downloadOnManualLikeHelp")}</div>
+          </div>
+
+          <div style={{ marginTop: "16px" }}>
+            <Checkbox
               checked={settings.autoLikeOnDownload}
               onChange={(checked) => setSetting("autoLikeOnDownload", checked)}
             >

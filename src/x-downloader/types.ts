@@ -8,6 +8,7 @@ export interface DownloaderSettings extends BaseSettings {
   readonly showUniversalDownloadButton: boolean;
   readonly showFollowBadge: boolean;
   readonly autoLikeOnDownload: boolean;
+  readonly downloadOnManualLike: boolean;
   readonly autoLikeApiFallback: boolean;
   readonly messagePlacement:
     | "top"

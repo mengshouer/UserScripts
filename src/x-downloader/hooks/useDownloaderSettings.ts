@@ -11,6 +11,7 @@ const DEFAULT_SETTINGS: DownloaderSettings = {
   showUniversalDownloadButton: true,
   showFollowBadge: true,
   autoLikeOnDownload: false,
+  downloadOnManualLike: false,
   autoLikeApiFallback: false,
   messagePlacement: "top",
   buttonPositionVertical: "bottom",

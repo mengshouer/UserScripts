@@ -24,7 +24,10 @@ export const zhTranslations: LocaleData = {
       showFollowBadge: "显示关注状态标识",
       showFollowBadgeHelp: "在推文用户名右侧显示是否已关注该用户",
       autoLike: "下载时自动点赞",
-      autoLikeHelp: "下载图片或视频时自动为推文点赞",
+      autoLikeHelp: "下载图片或视频时自动为推文点赞。自动化点赞可能增加账号风控风险。",
+      downloadOnManualLike: "手动点赞后自动下载",
+      downloadOnManualLikeHelp:
+        "手动点赞后自动下载推文中的图片或视频（无法确认点赞结果时仍会下载并提示）",
       autoLikeApiFallback: "点赞失败时使用 API fallback",
       autoLikeApiFallbackHelp:
         "当无法监听到 X 原生点赞响应时，直接调用 FavoriteTweet API 重试。开启后可能增加机器人检测风险。",
@@ -50,6 +53,7 @@ export const zhTranslations: LocaleData = {
     networkRequestFailed: "网络请求失败 ({status})",
     likeFailed: "点赞失败: {error}",
     likeResponseError: "点赞响应异常",
+    manualLikeResponseUncertain: "点赞响应异常，点赞可能仍已成功，将继续下载: {error}",
     downloadFailed: "下载失败",
     videoDownloadFailed: "视频下载失败",
     imageDownloadFailed: "图片下载失败",

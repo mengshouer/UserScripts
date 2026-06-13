@@ -25,7 +25,11 @@ export const enTranslations: LocaleData = {
       showFollowBadge: "Show follow status badge",
       showFollowBadgeHelp: "Display whether you follow the user beside the tweet username",
       autoLike: "Auto-like on download",
-      autoLikeHelp: "Automatically like the tweet when downloading images or videos",
+      autoLikeHelp:
+        "Automatically like the tweet when downloading images or videos. Automated likes may increase account risk.",
+      downloadOnManualLike: "Download on manual like",
+      downloadOnManualLikeHelp:
+        "Automatically download tweet media after you manually like a tweet. If the like result cannot be confirmed, the download still proceeds with a notice.",
       autoLikeApiFallback: "Use API fallback when auto-like fails",
       autoLikeApiFallbackHelp:
         "Directly calls the FavoriteTweet API when the native X like response cannot be observed. Enabling this may increase bot-detection risk.",
@@ -51,6 +55,8 @@ export const enTranslations: LocaleData = {
     networkRequestFailed: "Network request failed ({status})",
     likeFailed: "Like failed: {error}",
     likeResponseError: "Like response error",
+    manualLikeResponseUncertain:
+      "Like response was uncertain; the like may still have succeeded. Continuing download: {error}",
     downloadFailed: "Download failed",
     videoDownloadFailed: "Video download failed",
     imageDownloadFailed: "Image download failed",

@@ -2,7 +2,7 @@
 // @name         X(Twitter) Downloader
 // @name:zh-CN   X（Twitter）下载器
 // @author       mengshouer
-// @version      1.1.2
+// @version      1.2.0
 // @description  For X(Twitter) add download buttons for images and videos. Settings available by hovering mouse to the bottom left corner or via Tampermonkey menu.
 // @description:zh-CN  为 X(Twitter) 的图片和视频添加下载按钮。鼠标移入浏览器左下角或油猴菜单可打开设置。
 // @include      *://twitter.com/*
@@ -25,9 +25,10 @@ import { UniversalDownloadButton } from "./components/UniversalDownloadButton";
 import { findVideoContainer, findVideoPlayerContainer } from "./utils/videoUtils";
 import { findTweetContainer, isInsideQuoteTweet } from "./utils";
 import { initializeFollowBadgeSystem, setupFollowBadgeForTweet } from "./utils/followBadge";
+import { initializeManualLikeDownload } from "./utils/manualLikeDownload";
 import { installFollowStateInterceptor } from "./utils/followState";
 import { installFavoriteTweetResponseInterceptor } from "./utils/favoriteTweetResponse";
-import { TWEET_SELECTOR } from "./utils/selectors";
+import { IMAGE_SELECTOR, TWEET_SELECTOR, VIDEO_SELECTOR } from "./utils/selectors";
 import { STORAGE_KEY, OPEN_SETTINGS_EVENT, SETTINGS_CHANGE_EVENT } from "../shared";
 
 installFavoriteTweetResponseInterceptor();
@@ -38,8 +39,6 @@ GM_registerMenuCommand("⚙️ Settings / 设置", () => {
   window.dispatchEvent(new CustomEvent(OPEN_SETTINGS_EVENT));
 });
 
-export const IMAGE_SELECTOR = 'img[src^="https://pbs.twimg.com/media/"]';
-export const VIDEO_SELECTOR = "video";
 const processedImages = new WeakSet<HTMLImageElement>();
 const processedVideos = new WeakSet<HTMLVideoElement>();
 const processedTweets = new WeakSet<HTMLElement>();
@@ -286,6 +285,9 @@ function initializeApp(): void {
 
   // 初始化关注状态标识
   initializeFollowBadgeSystem();
+
+  // 初始化手动点赞后自动下载
+  initializeManualLikeDownload();
 
   // 开始监听推文内容
   watchForTimelineContent();

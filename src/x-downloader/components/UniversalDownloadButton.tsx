@@ -1,15 +1,16 @@
 import { useState, useEffect } from "preact/hooks";
 import { useDownloaderSettings } from "../hooks/useDownloaderSettings";
-import { handleImageDownload } from "./ImageDownloadButton";
-import { handleVideoDownload } from "./VideoDownloadButton";
-import { styled, message, i18n } from "../../shared";
-import { IMAGE_SELECTOR } from "..";
+import { styled, i18n, message } from "../../shared";
 import {
   tweetHasDownloadableImages,
   tweetHasDownloadableVideos,
   getDownloadableImages,
   getDownloadableVideos,
+  getTweetIdFromElement,
+  getUserIdFromTweetContainer,
+  likeTweet,
 } from "../utils";
+import { downloadTweetMedia } from "../utils/mediaDownload";
 
 interface UniversalDownloadButtonProps {
   tweetContainer: HTMLElement;
@@ -100,93 +101,6 @@ export function UniversalDownloadButton({ tweetContainer }: UniversalDownloadBut
     return null;
   }
 
-  // 创建一个空的状态函数，避免子下载函数影响主按钮状态
-  const nopSetDownloading = () => {};
-
-  const downloadImages = async (container: HTMLElement) => {
-    // 如果是预览页面，则只下载当前展示的图片
-    if (url.includes("/photo/") && container.nodeName !== "ARTICLE") {
-      const photoMatch = url.match(/\/photo\/(\d+)/);
-      const photoIndex = photoMatch && photoMatch[1] ? parseInt(photoMatch[1]) - 1 : 0;
-
-      // 查找轮播图容器，然后在其中按索引获取图片
-      const carouselContainer = container.querySelector('[aria-roledescription="carousel"]');
-      if (carouselContainer) {
-        const targetImage = carouselContainer.querySelectorAll(IMAGE_SELECTOR)[
-          photoIndex
-        ] as HTMLImageElement;
-
-        if (targetImage) {
-          const downloaded = await handleImageDownload({
-            setIsDownloading: nopSetDownloading,
-            targetImage,
-            settings,
-            imageIndex: photoIndex,
-            showSuccessMessage: false,
-            tweetContainer: container,
-          });
-          if (downloaded) {
-            message.success(i18n.t("messages.imagesDownloadSuccess", { count: 1 }));
-          }
-          return;
-        }
-      }
-      message.error(i18n.t("messages.imageDownloadFailed"));
-      return;
-    }
-
-    // 非预览模式，下载所有可下载的图片
-    const images = getDownloadableImages(container);
-
-    const downloadPromises = images
-      .filter((img) => img)
-      .map((img, index) =>
-        handleImageDownload({
-          setIsDownloading: nopSetDownloading,
-          targetImage: img,
-          settings,
-          skipAutoLike: index > 0, // 只有第一张图片允许点赞，其他跳过
-          imageIndex: index,
-          showSuccessMessage: false,
-          tweetContainer: container,
-        }),
-      );
-
-    const results = await Promise.allSettled(downloadPromises);
-
-    const failed = results.filter((result) => result.status === "rejected" || !result.value);
-    const successCount = results.length - failed.length;
-    if (successCount === 0) {
-      message.error(i18n.t("messages.imageDownloadFailed"));
-    } else if (failed.length > 0) {
-      message.warning(
-        i18n.t("messages.imagesDownloadSuccess", { count: `${successCount}/${results.length}` }),
-      );
-    } else {
-      message.success(i18n.t("messages.imagesDownloadSuccess", { count: results.length }));
-    }
-  };
-
-  const downloadVideo = async (container: HTMLElement) => {
-    // 获取第一个可下载的视频
-    const videos = getDownloadableVideos(container);
-    const video = videos[0];
-
-    if (!video) return;
-
-    const downloaded = await handleVideoDownload({
-      setIsDownloading: nopSetDownloading,
-      src: video.src,
-      tweetContainer: container,
-      settings,
-      showSuccessMessage: false,
-    });
-
-    if (downloaded) {
-      message.success(i18n.t("messages.videoDownloadSuccess"));
-    }
-  };
-
   const getTitle = () => {
     if (isDownloading) return i18n.t("ui.downloading");
 
@@ -217,10 +131,19 @@ export function UniversalDownloadButton({ tweetContainer }: UniversalDownloadBut
     setIsDownloading(true);
 
     try {
-      if (mediaType === "image") {
-        await downloadImages(tweetContainer);
-      } else if (mediaType === "video") {
-        await downloadVideo(tweetContainer);
+      const downloaded = await downloadTweetMedia({
+        tweetContainer,
+        settings,
+      });
+      if (downloaded && settings.autoLikeOnDownload) {
+        const username = getUserIdFromTweetContainer(tweetContainer);
+        const tweetId = getTweetIdFromElement(tweetContainer, username);
+        if (tweetId) {
+          const likeResult = await likeTweet(tweetContainer, tweetId);
+          if (!likeResult.success && likeResult.message) {
+            message.error(likeResult.message);
+          }
+        }
       }
     } finally {
       setIsDownloading(false);
