@@ -21,5 +21,7 @@ export const enTranslations: LocaleData = {
     downloadAllTitle: "Download all images of this artwork",
     downloadComplete: "Download complete ({count} images)",
     downloadFailed: "Download failed ({count} images), click to locate",
+    downloadSuccess: "Download successful",
+    downloadError: "Download failed",
   },
 };

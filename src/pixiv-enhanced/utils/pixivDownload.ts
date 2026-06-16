@@ -2,7 +2,7 @@
  * Pixiv 下载逻辑
  */
 
-import { gmDownloadFile, downloadGuard } from "../../shared";
+import { gmDownloadFile, downloadGuard, message, i18n } from "../../shared";
 import type { PixivArtworkInfo, ImageUrlInfo, PixivDownloaderSettings } from "../types";
 import { generatePixivFileName } from "./pixivParser";
 
@@ -18,6 +18,7 @@ export async function downloadSingleImage(
   imageInfo: ImageUrlInfo,
   artworkInfo: PixivArtworkInfo,
   settings: PixivDownloaderSettings,
+  showSuccessMessage: boolean = true,
 ): Promise<void> {
   try {
     // 生成文件名
@@ -29,8 +30,12 @@ export async function downloadSingleImage(
     });
 
     console.log("[Pixiv Downloader] 下载成功:", filename);
+    if (showSuccessMessage) {
+      message.success(i18n.t("ui.downloadSuccess"));
+    }
   } catch (error) {
     console.error("[Pixiv Downloader] 下载失败:", error);
+    message.error(i18n.t("ui.downloadError"));
     throw error;
   }
 }
@@ -62,7 +67,7 @@ export async function downloadAllImages(
 
       // 下载图片
       try {
-        await downloadSingleImage(imageInfo, artworkInfo, settings);
+        await downloadSingleImage(imageInfo, artworkInfo, settings, false);
         result.success++;
       } catch (error) {
         result.failed.push({ pageIndex: imageInfo.pageIndex, error });

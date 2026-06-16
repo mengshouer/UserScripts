@@ -1,9 +1,10 @@
 import { useState } from "preact/hooks";
-import { styled, formatPositionValue } from "../../shared";
+import { styled, formatPositionValue, message } from "../../shared";
 import { usePixivDownloaderSettings } from "../hooks/usePixivDownloaderSettings";
 import { getImageUrlInfo, extractArtworkInfo } from "../utils/pixivParser";
 import { downloadSingleImage } from "../utils/pixivDownload";
 import { DownloadIcon, LoadingIcon } from "./Icons";
+import { useI18n } from "../i18n";
 
 interface HoverDownloadButtonProps {
   targetImage: HTMLImageElement;
@@ -41,6 +42,7 @@ const StyledButton = styled("button")`
 export function HoverDownloadButton({ targetImage }: HoverDownloadButtonProps) {
   const { settings } = usePixivDownloaderSettings();
   const [isDownloading, setIsDownloading] = useState(false);
+  const { t } = useI18n();
 
   // 如果设置禁用了显示按钮,返回 null
   if (!settings.showHoverButton) return null;
@@ -58,6 +60,7 @@ export function HoverDownloadButton({ targetImage }: HoverDownloadButtonProps) {
       const artworkInfo = await extractArtworkInfo();
       if (!artworkInfo) {
         console.error("[Pixiv Downloader] 无法提取作品信息");
+        message.error(t("ui.downloadError"));
         return;
       }
 
@@ -65,6 +68,7 @@ export function HoverDownloadButton({ targetImage }: HoverDownloadButtonProps) {
       const imageInfo = await getImageUrlInfo(targetImage, artworkInfo.artworkId);
       if (!imageInfo) {
         console.error("[Pixiv Downloader] 无法获取图片URL信息");
+        message.error(t("ui.downloadError"));
         return;
       }
 
@@ -72,6 +76,7 @@ export function HoverDownloadButton({ targetImage }: HoverDownloadButtonProps) {
       await downloadSingleImage(imageInfo, artworkInfo, settings);
     } catch (error) {
       console.error("[Pixiv Downloader] 下载失败:", error);
+      message.error(t("ui.downloadError"));
     } finally {
       setIsDownloading(false);
     }

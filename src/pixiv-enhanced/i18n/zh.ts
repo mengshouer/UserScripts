@@ -21,5 +21,7 @@ export const zhTranslations: LocaleData = {
     downloadAllTitle: "下载作品的所有图片",
     downloadComplete: "下载完成 ({count} 张)",
     downloadFailed: "下载失败 ({count} 张)，点击定位",
+    downloadSuccess: "下载成功",
+    downloadError: "下载失败",
   },
 };
