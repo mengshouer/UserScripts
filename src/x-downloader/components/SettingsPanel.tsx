@@ -1,11 +1,11 @@
 import { useState } from "preact/hooks";
 import {
   Modal,
-  Button,
   Input,
   Checkbox,
-  LanguageSelector,
-  MessagePlacementSelector,
+  GeneralSettingsCard,
+  LanguageToggleButton,
+  ResetSettingsButton,
   SettingsCard,
   ButtonPositionSettings,
   useTheme,
@@ -21,21 +21,8 @@ interface SettingsPanelProps {
 export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const { settings, setSetting, resetSettings } = useDownloaderSettings();
   const { t } = useI18n();
-  const { theme, isDark } = useTheme();
+  const { theme } = useTheme();
   const [resetKey, setResetKey] = useState(0);
-
-  const toolbarStyle = {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    flexWrap: "wrap" as const,
-    gap: "16px",
-    padding: "16px",
-    marginBottom: "20px",
-    background: isDark ? "rgba(255, 255, 255, 0.02)" : "rgba(0, 0, 0, 0.01)",
-    border: `1px solid ${theme.borderColor}`,
-    borderRadius: "8px",
-  };
 
   const fieldStyle = {
     marginBottom: "20px",
@@ -57,37 +44,20 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={t("title")}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={t("title")}
+      headerActions={<LanguageToggleButton />}
+    >
       <div key={resetKey}>
-        {/* 顶部工具栏 */}
-        <div style={toolbarStyle}>
-          <div
-            style={{
-              display: "flex",
-              gap: "12px",
-              alignItems: "center",
-              flexWrap: "wrap",
-              flex: "1",
-              minWidth: "0",
-            }}
-          >
-            <LanguageSelector />
-            <MessagePlacementSelector
-              value={settings.messagePlacement}
-              onChange={(placement) => setSetting("messagePlacement", placement)}
-            />
-          </div>
-          <Button
-            variant="secondary"
-            style={{ flexShrink: 0 }}
-            onClick={() => {
-              resetSettings();
-              setResetKey((prev) => prev + 1);
-            }}
-          >
-            {t("settings.reset")}
-          </Button>
-        </div>
+        {/* 通用设置卡片 */}
+        <GeneralSettingsCard
+          placement={settings.messagePlacement}
+          alertDuration={settings.messageAlertDuration}
+          onPlacementChange={(placement) => setSetting("messagePlacement", placement)}
+          onAlertDurationChange={(value) => setSetting("messageAlertDuration", value)}
+        />
 
         {/* 图片下载设置卡片 */}
         <SettingsCard title={t("settings.image.title")}>
@@ -206,6 +176,15 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           }}
           onChange={(key, value) => setSetting(key, value as never)}
         />
+
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <ResetSettingsButton
+            onReset={() => {
+              resetSettings();
+              setResetKey((prev) => prev + 1);
+            }}
+          />
+        </div>
       </div>
     </Modal>
   );

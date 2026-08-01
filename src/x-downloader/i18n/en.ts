@@ -36,7 +36,6 @@ export const enTranslations: LocaleData = {
       hideEditImage: "Hide edit image button",
       hideEditImageHelp: 'Hide the "Edit image" button on tweet images',
     },
-    reset: "Reset to default settings",
   },
   messages: {
     downloadStart: "Download started",

@@ -1,26 +1,44 @@
 import { render, h } from "preact";
 import { Message } from "../components/Message";
 import { STORAGE_KEY } from "../constants";
+import type { MessagePlacement } from "../types";
 
-type MessagePlacement =
-  | "top"
-  | "bottom"
-  | "top-left"
-  | "top-right"
-  | "bottom-left"
-  | "bottom-right";
+type MessageType = "success" | "error" | "warning" | "info";
 
-const getUserMessagePlacement = (): MessagePlacement => {
+// 与 Message 组件的默认停留时长保持一致
+const DEFAULT_MESSAGE_DURATION = 3000;
+
+const readSettings = (): Record<string, unknown> => {
   try {
-    const settings = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-    return settings.messagePlacement || "top";
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
   } catch {
-    return "top";
+    return {};
   }
 };
 
+const getUserMessagePlacement = (): MessagePlacement =>
+  (readSettings().messagePlacement as MessagePlacement) || "top";
+
+/**
+ * warning / error 的停留时长可由用户配置：正数按该值，非正数表示常驻不消失。
+ * 缺失或空值回落到默认时长，避免从未打开过设置的用户被动变成常驻。
+ */
+const getAlertDuration = (): number => {
+  const raw = readSettings().messageAlertDuration;
+  if (raw === undefined || raw === null || raw === "") {
+    return DEFAULT_MESSAGE_DURATION;
+  }
+
+  const parsed = parseInt(String(raw), 10);
+  return parsed > 0 ? parsed : 0;
+};
+
+// success / info 是回执，固定时长；warning / error 需要用户处理，时长可配
+const getDefaultDuration = (type: MessageType): number =>
+  type === "warning" || type === "error" ? getAlertDuration() : DEFAULT_MESSAGE_DURATION;
+
 interface MessageConfig {
-  type?: "success" | "error" | "warning" | "info";
+  type?: MessageType;
   content: string;
   duration?: number;
   placement?: MessagePlacement;
@@ -96,14 +114,14 @@ const show = (config: MessageConfig) => {
 };
 
 const createMessageMethod =
-  (type: "success" | "error" | "warning" | "info") =>
+  (type: MessageType) =>
   (content: string, duration?: number, placement?: MessagePlacement, onClick?: () => void) =>
     show({
       type,
       content,
       placement: placement || getUserMessagePlacement(),
+      duration: duration ?? getDefaultDuration(type),
       ...(onClick && { onClick }),
-      ...(duration !== undefined && { duration }),
     });
 
 const success = createMessageMethod("success");

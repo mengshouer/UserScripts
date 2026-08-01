@@ -61,6 +61,26 @@ export interface BaseSettings {
   readonly [key: string]: unknown;
 }
 
+// === 消息提示共享设置 ===
+export type MessagePlacement =
+  | "top"
+  | "bottom"
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right";
+
+/**
+ * 各脚本共用的消息提示设置，脚本的 Settings 接口 extends 本接口即可获得，
+ * 默认值从 DEFAULT_MESSAGE_SETTINGS 展开。
+ */
+export interface SharedMessageSettings {
+  /** 消息弹层位置 */
+  readonly messagePlacement: MessagePlacement;
+  /** warning / error 提示的停留时长（毫秒字符串）；非正数表示常驻不消失 */
+  readonly messageAlertDuration: string;
+}
+
 // === 组件通用类型 ===
 export interface BaseComponentProps {
   readonly className?: string;
@@ -72,6 +92,8 @@ export interface ModalProps extends BaseComponentProps {
   readonly isOpen: boolean;
   readonly onClose: () => void;
   readonly title?: string;
+  /** 标题栏右侧、关闭按钮左侧的操作区 */
+  readonly headerActions?: VNode | VNode[] | null;
 }
 
 export interface ButtonProps extends BaseComponentProps {

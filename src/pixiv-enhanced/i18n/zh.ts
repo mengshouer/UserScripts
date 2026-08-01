@@ -12,7 +12,6 @@ export const zhTranslations: LocaleData = {
       showHoverButton: "显示悬停下载按钮",
       showHoverButtonHelp: "鼠标悬停在图片上时显示下载按钮",
     },
-    reset: "重置为默认设置",
   },
   ui: {
     downloadImage: "下载图片",

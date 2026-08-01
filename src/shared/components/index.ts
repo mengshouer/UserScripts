@@ -1,9 +1,10 @@
 export { Button } from "./Button";
 export { Checkbox } from "./Checkbox";
+export { GeneralSettingsCard } from "./GeneralSettingsCard";
 export { Input } from "./Input";
-export { LanguageSelector } from "./LanguageSelector";
+export { LanguageToggleButton } from "./LanguageToggleButton";
 export { Message } from "./Message";
-export { MessagePlacementSelector } from "./MessagePlacementSelector";
 export { Modal } from "./Modal";
+export { ResetSettingsButton } from "./ResetSettingsButton";
 export { Select } from "./Select";
 export { SettingsCard } from "./SettingsCard";

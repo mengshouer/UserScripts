@@ -6,13 +6,17 @@ export const enTranslations: LocaleData = {
     cancel: "Cancel",
     close: "Close",
     reset: "Reset",
+    resetSettings: "Reset to default settings",
+    resetConfirm: "Confirm reset?",
     save: "Save",
     loading: "Loading...",
     error: "Error",
     success: "Success",
     warning: "Warning",
     info: "Info",
-    language: "Language",
+    generalSettings: {
+      title: "General Settings",
+    },
     messagePlacement: {
       label: "Message Placement",
       top: "Top Center",
@@ -21,6 +25,11 @@ export const enTranslations: LocaleData = {
       topRight: "Top Right",
       bottomLeft: "Bottom Left",
       bottomRight: "Bottom Right",
+    },
+    messageAlertDuration: {
+      label: "Alert Duration (ms)",
+      placeholder: "3000",
+      help: "How long warning/error messages stay, in milliseconds. 0 or negative keeps them until dismissed. Success messages always stay 3s.",
     },
   },
   button: {

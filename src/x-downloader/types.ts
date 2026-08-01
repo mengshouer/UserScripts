@@ -1,6 +1,6 @@
-import type { BaseSettings } from "../shared/types";
+import type { BaseSettings, SharedMessageSettings } from "../shared/types";
 
-export interface DownloaderSettings extends BaseSettings {
+export interface DownloaderSettings extends BaseSettings, SharedMessageSettings {
   readonly fileName: string;
   readonly showDownloadButton: boolean;
   readonly videoFileName: string;
@@ -10,13 +10,6 @@ export interface DownloaderSettings extends BaseSettings {
   readonly autoLikeOnDownload: boolean;
   readonly downloadOnManualLike: boolean;
   readonly autoLikeApiFallback: boolean;
-  readonly messagePlacement:
-    | "top"
-    | "bottom"
-    | "top-left"
-    | "top-right"
-    | "bottom-left"
-    | "bottom-right";
   readonly buttonPositionVertical: "top" | "bottom";
   readonly buttonPositionHorizontal: "left" | "right";
   readonly buttonPositionVerticalValue: string;

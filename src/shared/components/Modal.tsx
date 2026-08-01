@@ -39,6 +39,7 @@ export function Modal({
   isOpen,
   onClose,
   title,
+  headerActions,
   children,
   className = "",
   style = {},
@@ -72,7 +73,7 @@ export function Modal({
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: title ? "20px" : "0",
+    marginBottom: title || headerActions ? "20px" : "0",
   };
 
   const titleStyle = {
@@ -85,7 +86,6 @@ export function Modal({
   const closeButtonStyle = {
     background: "none",
     border: "none",
-    fontSize: "24px",
     cursor: "pointer",
     color: theme.secondaryTextColor,
     padding: 0,
@@ -107,20 +107,35 @@ export function Modal({
       >
         <div style={headerStyle}>
           {title && <h2 style={titleStyle}>{title}</h2>}
-          <button
-            style={closeButtonStyle}
-            onClick={onClose}
-            onMouseEnter={(e: Event) => {
-              const target = e.target as HTMLElement;
-              target.style.backgroundColor = theme.borderColor;
-            }}
-            onMouseLeave={(e: Event) => {
-              const target = e.target as HTMLElement;
-              target.style.backgroundColor = "transparent";
-            }}
-          >
-            ×
-          </button>
+          {/* 与关闭按钮归为一组，否则 space-between 会把 headerActions 挤到中间 */}
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
+            {headerActions}
+            <button
+              style={closeButtonStyle}
+              onClick={onClose}
+              onMouseEnter={(e: Event) => {
+                const target = e.currentTarget as HTMLElement;
+                target.style.backgroundColor = theme.borderColor;
+              }}
+              onMouseLeave={(e: Event) => {
+                const target = e.currentTarget as HTMLElement;
+                target.style.backgroundColor = "transparent";
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
+          </div>
         </div>
         <div>{children}</div>
       </ModalContainer>

@@ -2,7 +2,12 @@
 export type * from "./types";
 
 // 常量
-export { STORAGE_KEY, OPEN_SETTINGS_EVENT, SETTINGS_CHANGE_EVENT } from "./constants";
+export {
+  STORAGE_KEY,
+  OPEN_SETTINGS_EVENT,
+  SETTINGS_CHANGE_EVENT,
+  DEFAULT_MESSAGE_SETTINGS,
+} from "./constants";
 
 // 工具函数
 export { StorageManager } from "./utils/storage";
@@ -29,11 +34,12 @@ export * from "./i18n";
 // 组件
 export { Button } from "./components/Button";
 export { Checkbox } from "./components/Checkbox";
+export { GeneralSettingsCard } from "./components/GeneralSettingsCard";
 export { Input } from "./components/Input";
-export { LanguageSelector } from "./components/LanguageSelector";
+export { LanguageToggleButton } from "./components/LanguageToggleButton";
 export { Message } from "./components/Message";
-export { MessagePlacementSelector } from "./components/MessagePlacementSelector";
 export { Modal } from "./components/Modal";
+export { ResetSettingsButton } from "./components/ResetSettingsButton";
 export { Select } from "./components/Select";
 export { SettingsCard } from "./components/SettingsCard";
 export { SettingsButton, type SettingsButtonProps } from "./components/SettingsButton";

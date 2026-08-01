@@ -2,7 +2,7 @@
 // @name         Pixiv Enhanced
 // @name:zh-CN   Pixiv 增强
 // @author       mengshouer
-// @version      0.1.1
+// @version      0.2.0
 // @description  Enhance Pixiv with download and more features. Settings available by hovering mouse to the bottom left corner or via Tampermonkey menu.
 // @description:zh-CN  增强 Pixiv，提供下载等功能。鼠标移入浏览器左下角或油猴菜单可打开设置。
 // @include      *://www.pixiv.net/artworks/*

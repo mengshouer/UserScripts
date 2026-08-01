@@ -1,9 +1,10 @@
 import { useState, useEffect } from "preact/hooks";
 import { createSettingsHook } from "../../shared/hooks/useSettings";
-import { STORAGE_KEY } from "../../shared";
+import { DEFAULT_MESSAGE_SETTINGS, STORAGE_KEY } from "../../shared";
 import type { DownloaderSettings } from "../types";
 
 const DEFAULT_SETTINGS: DownloaderSettings = {
+  ...DEFAULT_MESSAGE_SETTINGS,
   fileName: "<%Userid> <%Tid>_p<%PicNo>",
   showDownloadButton: true,
   videoFileName: "<%Userid> <%Tid>",
@@ -13,7 +14,6 @@ const DEFAULT_SETTINGS: DownloaderSettings = {
   autoLikeOnDownload: false,
   downloadOnManualLike: false,
   autoLikeApiFallback: false,
-  messagePlacement: "top",
   buttonPositionVertical: "bottom",
   buttonPositionHorizontal: "right",
   buttonPositionVerticalValue: "64",

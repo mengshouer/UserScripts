@@ -12,7 +12,6 @@ export const enTranslations: LocaleData = {
       showHoverButton: "Show hover download button",
       showHoverButtonHelp: "Show download button when hovering over images",
     },
-    reset: "Reset to default settings",
   },
   ui: {
     downloadImage: "Download Image",

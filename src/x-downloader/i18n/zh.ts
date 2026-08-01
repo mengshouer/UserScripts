@@ -34,7 +34,6 @@ export const zhTranslations: LocaleData = {
       hideEditImage: "隐藏图片编辑按钮",
       hideEditImageHelp: '隐藏推文图片上的 "Edit image" 按钮',
     },
-    reset: "重置为默认设置",
   },
   messages: {
     downloadStart: "开始下载",

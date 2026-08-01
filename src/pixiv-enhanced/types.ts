@@ -2,8 +2,8 @@
  * Pixiv Downloader 类型定义
  */
 
-import type { BaseSettings } from "../shared/types";
-import type { MessagePlacement } from "../shared/components/MessagePlacementSelector";
+import type { BaseSettings, SharedMessageSettings } from "../shared/types";
+import { DEFAULT_MESSAGE_SETTINGS } from "../shared/constants";
 
 // GM 类型声明已移至 src/shared/types.ts
 
@@ -47,7 +47,7 @@ export type ButtonPosition = "top" | "bottom" | "left" | "right";
 /**
  * Pixiv Downloader 设置
  */
-export interface PixivDownloaderSettings extends BaseSettings {
+export interface PixivDownloaderSettings extends BaseSettings, SharedMessageSettings {
   /** 文件命名模板 */
   readonly fileName: string;
   /** 显示悬停按钮 */
@@ -60,19 +60,17 @@ export interface PixivDownloaderSettings extends BaseSettings {
   readonly buttonPositionVerticalValue: string;
   /** 按钮水平位置值 */
   readonly buttonPositionHorizontalValue: string;
-  /** 消息弹层位置 */
-  readonly messagePlacement: MessagePlacement;
 }
 
 /**
  * 默认设置
  */
 export const DEFAULT_SETTINGS: PixivDownloaderSettings = {
+  ...DEFAULT_MESSAGE_SETTINGS,
   fileName: "<%ArtworkId>_p<%PageIndex>_<%AuthorId>",
   showHoverButton: true,
   buttonPositionVertical: "bottom",
   buttonPositionHorizontal: "right",
   buttonPositionVerticalValue: "8",
   buttonPositionHorizontalValue: "8",
-  messagePlacement: "top",
 };
