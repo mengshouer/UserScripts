@@ -47,10 +47,12 @@ export async function downloadFile(url: string, fileName: string): Promise<void>
     // 触发下载
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
 
-    // 清理 URL
-    URL.revokeObjectURL(downloadUrl);
+    // 紧跟 click() 同步 revoke 会在浏览器读取 blob 前吊销 URL，导致下载静默失败
+    setTimeout(() => {
+      link.remove();
+      URL.revokeObjectURL(downloadUrl);
+    }, 100);
   } catch (error) {
     console.error(`Download failed: ${fileName}`, error);
     throw error;
@@ -89,7 +91,7 @@ export async function gmDownloadFile(
           document.body.appendChild(a);
           a.click();
           setTimeout(() => {
-            document.body.removeChild(a);
+            a.remove();
             URL.revokeObjectURL(blobUrl);
           }, 100);
           resolve();
