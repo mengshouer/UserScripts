@@ -244,13 +244,28 @@ export const installFavoriteTweetResponseInterceptor = (): void => {
     const responsePromise = originalFetch(...args);
 
     if (tweetIdPromise) {
+      // 双参数 then 让拒绝分支只归因于请求本身失败；尾部 catch 仅兜住两个 handler
+      // 内部的异常（如 body 已被读取导致 clone 抛错），避免变成 unhandled rejection
       void responsePromise
-        .then(async (response) => {
-          const tweetId = await tweetIdPromise;
-          if (tweetId) {
-            readFavoriteTweetFromResponse(tweetId, response);
-          }
-        })
+        .then(
+          async (response) => {
+            const tweetId = await tweetIdPromise;
+            if (tweetId) {
+              readFavoriteTweetFromResponse(tweetId, response);
+            }
+          },
+          async (error: unknown) => {
+            // 请求失败（断网 / abort / CORS）时主动上报，否则监听方只能等到超时
+            const tweetId = await tweetIdPromise.catch(() => undefined);
+            if (tweetId) {
+              notifyFavoriteTweetResult({
+                tweetId,
+                success: false,
+                errorMessage: error instanceof Error ? error.message : undefined,
+              });
+            }
+          },
+        )
         .catch(() => undefined);
     }
 

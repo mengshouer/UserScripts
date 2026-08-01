@@ -5,28 +5,34 @@ import { downloadTweetMedia } from "./mediaDownload";
 import { LIKE_BUTTON_SELECTOR } from "./selectors";
 import {
   findTweetContainer,
+  getTweetIdFromElement,
+  getUserIdFromTweetContainer,
   tweetHasDownloadableImages,
   tweetHasDownloadableVideos,
 } from "./tweetDom";
 
-const MANUAL_LIKE_RESPONSE_TIMEOUT_MS = 8000;
-// 冷却期内同一推文不重复触发，避免快速 unlike/like 误触导致重复下载
+// 点赞响应确认窗口。下载不等待它，它只决定「多久之后判定为没收到响应并提示」，
+// 所以可以放宽：弱网下 X 响应偏慢时过早提示只会变成假警报。
+const MANUAL_LIKE_RESPONSE_TIMEOUT_MS = 15_000;
+// 同一推文在此期间内不再触发下载，覆盖重复点击、同一推文存在多个点赞按钮
+// （灯箱底部与右栏 article）、以及快速 unlike/like 误触
 const MANUAL_LIKE_DOWNLOAD_COOLDOWN_MS = 10_000;
-const pendingManualLikeDownloads = new Set<string>();
 
-// 待确认的点赞请求序号，按 FIFO 顺序消费 FavoriteTweet 响应
-const pendingLikeTokens = new Set<number>();
-let likeSequence = 0;
+// 正在下载或处于冷却期的推文 id
+const activeManualLikeTweetIds = new Set<string>();
 
 let initialized = false;
 
-interface ManualLikeConfirmationResult {
-  success: boolean;
-  tweetId: string;
-  errorMessage?: string | undefined;
-}
+const buildTweetUrl = (tweetId: string, username: string | undefined): string =>
+  username
+    ? `https://x.com/${username}/status/${tweetId}`
+    : `https://x.com/i/web/status/${tweetId}`;
 
-const waitForManualLikeConfirmation = (token: number): Promise<ManualLikeConfirmationResult> => {
+/**
+ * 监听该推文的 FavoriteTweet 响应，仅在响应异常或迟迟收不到响应时提示。
+ * 下载已在点击时发起，这里不参与下载流程，纯粹作为提示通道。
+ */
+const watchLikeResult = (tweetId: string, username: string | undefined): void => {
   let settled = false;
   let timeoutId: number | undefined;
   let unsubscribe: (() => void) | undefined;
@@ -40,91 +46,79 @@ const waitForManualLikeConfirmation = (token: number): Promise<ManualLikeConfirm
     unsubscribe = undefined;
   };
 
-  return new Promise((resolve) => {
-    const finish = (result: ManualLikeConfirmationResult) => {
-      if (settled) {
-        return;
-      }
+  /** errorMessage 为空表示点赞已确认成功，静默收尾；否则弹出可点击的警告 */
+  const settle = (errorMessage?: string): void => {
+    if (settled) {
+      return;
+    }
 
-      settled = true;
-      cleanup();
-      resolve(result);
-    };
+    settled = true;
+    cleanup();
 
-    timeoutId = window.setTimeout(
-      () =>
-        finish({
-          success: false,
-          tweetId: "",
-          errorMessage: i18n.t("messages.likeResponseError"),
-        }),
-      MANUAL_LIKE_RESPONSE_TIMEOUT_MS,
+    if (!errorMessage) {
+      return;
+    }
+
+    message.warning(
+      i18n.t("messages.manualLikeResponseUncertain", {
+        user: username || tweetId,
+        error: errorMessage,
+      }),
+      undefined,
+      undefined,
+      () => window.open(buildTweetUrl(tweetId, username), "_blank"),
     );
+  };
 
-    unsubscribe = subscribeFavoriteTweetResponse((result) => {
-      // FIFO：仅最早的待确认点赞消费当前响应，避免并发点赞时多个订阅抢占同一响应。
-      // 下载内容由 tweetContainer 决定，tweetId 仅用于冷却去重，故即使响应乱序也不会下错推文。
-      let oldest = Infinity;
-      for (const pending of pendingLikeTokens) {
-        if (pending < oldest) {
-          oldest = pending;
-        }
-      }
-      if (token !== oldest) {
-        return;
-      }
+  timeoutId = window.setTimeout(
+    () => settle(i18n.t("messages.likeResponseError")),
+    MANUAL_LIKE_RESPONSE_TIMEOUT_MS,
+  );
 
-      finish({
-        success: result.success,
-        tweetId: result.tweetId,
-        errorMessage: result.success
-          ? undefined
-          : result.errorMessage || i18n.t("messages.likeResponseError"),
-      });
-    });
+  unsubscribe = subscribeFavoriteTweetResponse((result) => {
+    // 按 tweetId 精确配对：并发点赞时各自只认自己那条响应，不受响应顺序影响
+    if (result.tweetId !== tweetId) {
+      return;
+    }
+
+    settle(
+      result.success ? undefined : result.errorMessage || i18n.t("messages.likeResponseError"),
+    );
   });
 };
 
-const maybeDownloadAfterManualLike = (tweetContainer: HTMLElement): void => {
-  // 预检查：无可下载媒体时直接跳过，避免对纯文本推文启动 8 秒等待
+const maybeDownloadAfterManualLike = (
+  tweetContainer: HTMLElement,
+  likeButton: HTMLElement,
+): void => {
+  // 预检查：无可下载媒体时不产生任何动作，避免对纯文本推文误报
   const hasMedia =
     tweetHasDownloadableImages(tweetContainer) || tweetHasDownloadableVideos(tweetContainer);
   if (!hasMedia) {
     return;
   }
 
-  const token = ++likeSequence;
-  pendingLikeTokens.add(token);
+  // tweetId 是可选增强：用于去重去噪与警告里的推文链接。
+  // 解析失败时（例如没有 status 链接的推广推文）降级处理，但下载照常进行。
+  const tweetId = getTweetIdFromElement(likeButton);
+  const username = tweetId ? getUserIdFromTweetContainer(tweetContainer) : undefined;
 
+  if (tweetId) {
+    if (activeManualLikeTweetIds.has(tweetId)) {
+      return;
+    }
+
+    activeManualLikeTweetIds.add(tweetId);
+    watchLikeResult(tweetId, username);
+  } else {
+    console.debug(
+      "[x-downloader] manual like: tweet id unavailable, dedupe and like check skipped",
+    );
+  }
+
+  // 点击即下载，不等待点赞响应：等待除了拖慢下载并不能阻止任何一次下载
   void (async () => {
-    let confirmation: ManualLikeConfirmationResult | undefined;
     try {
-      confirmation = await waitForManualLikeConfirmation(token);
-
-      if (!settingsHook.signal.value.downloadOnManualLike) {
-        return;
-      }
-
-      const { tweetId } = confirmation;
-      if (!tweetId) {
-        return;
-      }
-
-      // 冷却期去重
-      if (pendingManualLikeDownloads.has(tweetId)) {
-        return;
-      }
-
-      pendingManualLikeDownloads.add(tweetId);
-
-      if (!confirmation.success) {
-        message.warning(
-          i18n.t("messages.manualLikeResponseUncertain", {
-            error: confirmation.errorMessage || i18n.t("messages.likeResponseError"),
-          }),
-        );
-      }
-
       await downloadTweetMedia({
         tweetContainer,
         settings: settingsHook.signal.value,
@@ -132,11 +126,9 @@ const maybeDownloadAfterManualLike = (tweetContainer: HTMLElement): void => {
     } catch (error) {
       console.error("Download on manual like failed:", error);
     } finally {
-      pendingLikeTokens.delete(token);
-      const finalTweetId = confirmation?.tweetId;
-      if (finalTweetId) {
+      if (tweetId) {
         window.setTimeout(
-          () => pendingManualLikeDownloads.delete(finalTweetId),
+          () => activeManualLikeTweetIds.delete(tweetId),
           MANUAL_LIKE_DOWNLOAD_COOLDOWN_MS,
         );
       }
@@ -171,7 +163,7 @@ const handleDocumentClick = (event: MouseEvent): void => {
     return;
   }
 
-  maybeDownloadAfterManualLike(tweetContainer);
+  maybeDownloadAfterManualLike(tweetContainer, likeButton);
 };
 
 export const initializeManualLikeDownload = (): void => {
