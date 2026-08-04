@@ -53,6 +53,7 @@ export const zhTranslations: LocaleData = {
     likeFailed: "点赞失败: {error}",
     likeResponseError: "点赞响应异常",
     manualLikeResponseUncertain: "@{user} 点赞响应异常，下载已继续（{error}）。点击打开该推文",
+    manualLikeResponseMissing: "@{user} 点赞可能未成功（未收到响应），下载已继续。点击打开该推文",
     downloadFailed: "下载失败",
     videoDownloadFailed: "视频下载失败",
     imageDownloadFailed: "图片下载失败",

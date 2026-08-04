@@ -2,7 +2,7 @@ import { i18n, message } from "../../shared";
 import { settingsHook } from "../hooks/useDownloaderSettings";
 import { subscribeFavoriteTweetResponse } from "./favoriteTweetResponse";
 import { downloadTweetMedia } from "./mediaDownload";
-import { LIKE_BUTTON_SELECTOR } from "./selectors";
+import { LIKE_BUTTON_SELECTOR, UNLIKE_BUTTON_SELECTOR } from "./selectors";
 import {
   findTweetContainer,
   getTweetIdFromElement,
@@ -11,8 +11,9 @@ import {
   tweetHasDownloadableVideos,
 } from "./tweetDom";
 
-// 点赞响应确认窗口。下载不等待它，它只决定「多久之后判定为没收到响应并提示」，
-// 所以可以放宽：弱网下 X 响应偏慢时过早提示只会变成假警报。
+// 点赞响应确认窗口。下载不等待它，它只决定「多久之后判定为没收到响应」，
+// 到点后还要用按钮状态复核才会提示，所以放宽是安全的：
+// 弱网下 X 响应偏慢时过早判定只会增加复核次数。
 const MANUAL_LIKE_RESPONSE_TIMEOUT_MS = 15_000;
 // 同一推文在此期间内不再触发下载，覆盖重复点击、同一推文存在多个点赞按钮
 // （灯箱底部与右栏 article）、以及快速 unlike/like 误触
@@ -23,16 +24,41 @@ const activeManualLikeTweetIds = new Set<string>();
 
 let initialized = false;
 
+/** 无响应可归因时用 timeout，X 明确返回错误时用 error */
+type LikeSettleReason = { kind: "timeout" } | { kind: "error"; message: string };
+
 const buildTweetUrl = (tweetId: string, username: string | undefined): string =>
   username
     ? `https://x.com/${username}/status/${tweetId}`
     : `https://x.com/i/web/status/${tweetId}`;
 
 /**
+ * 没观测到响应时改用按钮状态复核：只有能正面看到「仍未点赞」才提示。
+ * 容器已被 timeline 虚拟化回收、或按钮压根找不到时一律返回 false——
+ * 观测不到不等于点赞失败，此时闭嘴比误报更可取。
+ */
+const isStillUnliked = (tweetContainer: HTMLElement): boolean => {
+  if (!tweetContainer.isConnected) {
+    return false;
+  }
+
+  // 先查 unlike：灯箱容器里可能混有其他推文的 like 按钮，已点赞的证据优先
+  if (tweetContainer.querySelector(UNLIKE_BUTTON_SELECTOR)) {
+    return false;
+  }
+
+  return Boolean(tweetContainer.querySelector(LIKE_BUTTON_SELECTOR));
+};
+
+/**
  * 监听该推文的 FavoriteTweet 响应，仅在响应异常或迟迟收不到响应时提示。
  * 下载已在点击时发起，这里不参与下载流程，纯粹作为提示通道。
  */
-const watchLikeResult = (tweetId: string, username: string | undefined): void => {
+const watchLikeResult = (
+  tweetId: string,
+  username: string | undefined,
+  tweetContainer: HTMLElement,
+): void => {
   let settled = false;
   let timeoutId: number | undefined;
   let unsubscribe: (() => void) | undefined;
@@ -46,8 +72,14 @@ const watchLikeResult = (tweetId: string, username: string | undefined): void =>
     unsubscribe = undefined;
   };
 
-  /** errorMessage 为空表示点赞已确认成功，静默收尾；否则弹出可点击的警告 */
-  const settle = (errorMessage?: string): void => {
+  const warnWithTweetLink = (content: string): void => {
+    message.warning(content, undefined, undefined, () =>
+      window.open(buildTweetUrl(tweetId, username), "_blank"),
+    );
+  };
+
+  /** reason 为空表示点赞已确认成功，静默收尾；否则按原因弹出可点击的警告 */
+  const settle = (reason?: LikeSettleReason): void => {
     if (settled) {
       return;
     }
@@ -55,25 +87,29 @@ const watchLikeResult = (tweetId: string, username: string | undefined): void =>
     settled = true;
     cleanup();
 
-    if (!errorMessage) {
+    if (!reason) {
       return;
     }
 
-    message.warning(
-      i18n.t("messages.manualLikeResponseUncertain", {
-        user: username || tweetId,
-        error: errorMessage,
-      }),
-      undefined,
-      undefined,
-      () => window.open(buildTweetUrl(tweetId, username), "_blank"),
-    );
+    if (reason.kind === "error") {
+      warnWithTweetLink(
+        i18n.t("messages.manualLikeResponseUncertain", {
+          user: username || tweetId,
+          error: reason.message,
+        }),
+      );
+      return;
+    }
+
+    // 超时只说明我们没观测到响应，按钮状态才是本地事实
+    if (!isStillUnliked(tweetContainer)) {
+      return;
+    }
+
+    warnWithTweetLink(i18n.t("messages.manualLikeResponseMissing", { user: username || tweetId }));
   };
 
-  timeoutId = window.setTimeout(
-    () => settle(i18n.t("messages.likeResponseError")),
-    MANUAL_LIKE_RESPONSE_TIMEOUT_MS,
-  );
+  timeoutId = window.setTimeout(() => settle({ kind: "timeout" }), MANUAL_LIKE_RESPONSE_TIMEOUT_MS);
 
   unsubscribe = subscribeFavoriteTweetResponse((result) => {
     // 按 tweetId 精确配对：并发点赞时各自只认自己那条响应，不受响应顺序影响
@@ -82,7 +118,9 @@ const watchLikeResult = (tweetId: string, username: string | undefined): void =>
     }
 
     settle(
-      result.success ? undefined : result.errorMessage || i18n.t("messages.likeResponseError"),
+      result.success
+        ? undefined
+        : { kind: "error", message: result.errorMessage || i18n.t("messages.likeResponseError") },
     );
   });
 };
@@ -109,7 +147,7 @@ const maybeDownloadAfterManualLike = (
     }
 
     activeManualLikeTweetIds.add(tweetId);
-    watchLikeResult(tweetId, username);
+    watchLikeResult(tweetId, username, tweetContainer);
   } else {
     console.debug(
       "[x-downloader] manual like: tweet id unavailable, dedupe and like check skipped",

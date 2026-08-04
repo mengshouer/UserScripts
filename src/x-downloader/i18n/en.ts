@@ -56,6 +56,8 @@ export const enTranslations: LocaleData = {
     likeResponseError: "Like response error",
     manualLikeResponseUncertain:
       "Like response error for @{user}, download continued ({error}). Click to open the tweet",
+    manualLikeResponseMissing:
+      "@{user} like may not have gone through (no response observed), download continued. Click to open the tweet",
     downloadFailed: "Download failed",
     videoDownloadFailed: "Video download failed",
     imageDownloadFailed: "Image download failed",

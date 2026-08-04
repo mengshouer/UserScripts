@@ -198,12 +198,16 @@ const readFavoriteTweetFromText = (
   }
 };
 
-const readFavoriteTweetFromResponse = (tweetId: string, response: Response): void => {
-  void response
-    .clone()
+/** 消费传入 response 的 body，调用方必须传克隆体，不能传交还给页面的那一份 */
+const readFavoriteTweetFromResponseClone = (tweetId: string, responseClone: Response): void => {
+  void responseClone
     .text()
-    .then((responseText) => readFavoriteTweetFromText(tweetId, responseText, response.status))
-    .catch(() => notifyFavoriteTweetResult({ tweetId, success: false, status: response.status }));
+    .then((responseText) => readFavoriteTweetFromText(tweetId, responseText, responseClone.status))
+    .catch((error: unknown) => {
+      // 读取失败是真实的响应异常，照常上报，同时留下诊断信息
+      console.warn("[x-downloader] FavoriteTweet response read failed:", error);
+      notifyFavoriteTweetResult({ tweetId, success: false, status: responseClone.status });
+    });
 };
 
 const readFavoriteTweetFromXhr = (tweetId: string, xhr: XMLHttpRequest): void => {
@@ -245,14 +249,23 @@ export const installFavoriteTweetResponseInterceptor = (): void => {
 
     if (tweetIdPromise) {
       // 双参数 then 让拒绝分支只归因于请求本身失败；尾部 catch 仅兜住两个 handler
-      // 内部的异常（如 body 已被读取导致 clone 抛错），避免变成 unhandled rejection
+      // 内部的异常，并且必须留下日志——静默吞掉会让监听方只剩 15s 超时这一个信号
       void responsePromise
         .then(
-          async (response) => {
-            const tweetId = await tweetIdPromise;
-            if (tweetId) {
-              readFavoriteTweetFromResponse(tweetId, response);
-            }
+          (response) => {
+            // 必须在任何 await 之前同步 clone：页面自己的 handler 在下一个 microtask
+            // 就可能读掉 body，那之后 clone 会抛 "body is already used"
+            const responseClone = response.clone();
+
+            return tweetIdPromise.then((tweetId) => {
+              if (tweetId) {
+                readFavoriteTweetFromResponseClone(tweetId, responseClone);
+                return;
+              }
+
+              // 归因不到 tweetId 时主动释放克隆体，避免 tee 缓冲一直挂着
+              void responseClone.body?.cancel().catch(() => undefined);
+            });
           },
           async (error: unknown) => {
             // 请求失败（断网 / abort / CORS）时主动上报，否则监听方只能等到超时
@@ -266,7 +279,9 @@ export const installFavoriteTweetResponseInterceptor = (): void => {
             }
           },
         )
-        .catch(() => undefined);
+        .catch((error: unknown) => {
+          console.warn("[x-downloader] FavoriteTweet interceptor failed:", error);
+        });
     }
 
     return responsePromise;

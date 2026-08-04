@@ -111,8 +111,18 @@ async function tryLikeViaDom(
 
   const likeResult = await pendingFavoriteTweet.promise;
 
-  if (likeResult.success) {
-    if (likeResult.likedThisSession) {
+  // 没拿到明确失败结论时（超时 / 找不到按钮），按钮已变成 unlike 就说明点赞其实成功了。
+  // 点击前已确认过没有 unlike 按钮，所以这里的成功必然发生在本次会话。
+  // 少这一步会对已点赞的推文再发一次 API 请求，白白抬高账号风控风险。
+  const confirmedResult: LikeTweetResult =
+    !likeResult.success &&
+    likeResult.canUseApiFallback &&
+    tweetContainer.querySelector(UNLIKE_BUTTON_SELECTOR)
+      ? { success: true, likedThisSession: true }
+      : likeResult;
+
+  if (confirmedResult.success) {
+    if (confirmedResult.likedThisSession) {
       setTweetFollowBadgeLikeAlert(tweetContainer, true);
       message.info(i18n.t("messages.likeSuccess"));
     } else {
@@ -120,7 +130,7 @@ async function tryLikeViaDom(
     }
   }
 
-  return likeResult;
+  return confirmedResult;
 }
 
 function waitForFavoriteTweetResponse(tweetId: string): PendingFavoriteTweetResult {
