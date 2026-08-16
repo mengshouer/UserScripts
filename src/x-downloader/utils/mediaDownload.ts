@@ -12,6 +12,7 @@ import { IMAGE_SELECTOR, VIDEO_SELECTOR } from "./selectors";
 import { extractVideoUrl } from "./videoUtils";
 import { handleDownloadError } from "./downloadError";
 import {
+  findTweetContainer,
   getDownloadableImages,
   getDownloadableVideos,
   getTweetIdFromElement,
@@ -20,11 +21,28 @@ import {
 
 interface DownloadMediaResult {
   success: boolean;
-  tweetId?: string;
+  tweetId?: string | undefined;
+}
+
+/**
+ * 检查关键字段是否为 unknown，打印详细日志并返回缺失字段列表
+ */
+function checkMissingFields(fields: Record<string, string | undefined>, source: string): string[] {
+  const missing: string[] = [];
+  for (const [name, value] of Object.entries(fields)) {
+    if (!value || value === "unknown") {
+      missing.push(name);
+    }
+  }
+  if (missing.length > 0) {
+    console.warn(`[x-downloader] Fields unresolved: ${missing.join(", ")} | source: ${source}`);
+  }
+  return missing;
 }
 
 interface ImageMediaDownloadOptions {
   targetImage: HTMLImageElement;
+  tweetContainer?: HTMLElement | null | undefined;
   settings: DownloaderSettings;
   imageIndex?: number | undefined;
   isShiftPressed?: boolean;
@@ -60,29 +78,59 @@ function findFirstAnchor(node: HTMLElement): HTMLAnchorElement | null {
 
 export async function downloadImageMedia({
   targetImage,
+  tweetContainer,
   settings,
   imageIndex,
   isShiftPressed = false,
   showSuccessMessage = true,
-}: ImageMediaDownloadOptions): Promise<DownloadMediaResult> {
+  skipFieldWarning = false,
+}: ImageMediaDownloadOptions & { skipFieldWarning?: boolean }): Promise<DownloadMediaResult> {
   try {
     const { picname, ext } = extractFileInfo(targetImage.src);
-    let urlInfo;
 
-    if (window.location.href.includes("photo")) {
-      urlInfo = extractUrlInfo(window.location.href);
-    } else {
-      const firstA = findFirstAnchor(targetImage);
-      if (!firstA) return { success: false };
-      urlInfo = extractUrlInfo(firstA.href);
+    // 提取 userid 和 tid：优先从 tweet 容器 DOM 中获取（和视频路径一致），URL 解析作为补充
+    const container = tweetContainer || findTweetContainer(targetImage);
+    let userid: string | undefined;
+    let tid: string | undefined;
+    let picno = "1";
+
+    if (container) {
+      userid = getUserIdFromTweetContainer(container);
+      tid = getTweetIdFromElement(container, userid);
     }
 
-    // 优先使用传入的 imageIndex，否则使用 URL 中解析的 picno
-    const picNo = imageIndex ?? parseInt(urlInfo.picno) - 1;
+    // 从 URL 中解析 picno，同时作为 userid/tid 的 fallback
+    const firstA = findFirstAnchor(targetImage);
+    const parseSource = window.location.href.includes("photo")
+      ? window.location.href
+      : firstA?.href || "";
+    if (parseSource) {
+      const urlInfo = extractUrlInfo(parseSource);
+      if (!userid || userid === "unknown") userid = urlInfo.userid;
+      if (!tid || tid === "unknown") tid = urlInfo.tid;
+      picno = urlInfo.picno;
+    }
+
+    userid = userid || "unknown";
+    tid = tid || "unknown";
+
+    let hasFieldWarning = false;
+    if (!skipFieldWarning) {
+      const missing = checkMissingFields(
+        { Userid: userid, Tid: tid },
+        parseSource || window.location.href,
+      );
+      if (missing.length > 0) {
+        message.warning(i18n.t("messages.fieldMissing", { fields: missing.join(", ") }));
+        hasFieldWarning = true;
+      }
+    }
+
+    const picNo = imageIndex ?? parseInt(picno) - 1;
 
     const filename = generateFileName(settings.fileName, {
-      Userid: urlInfo.userid,
-      Tid: urlInfo.tid,
+      Userid: userid,
+      Tid: tid,
       Time: `${Date.now()}`,
       PicName: picname,
       PicNo: `${picNo}`,
@@ -90,18 +138,17 @@ export async function downloadImageMedia({
 
     const downloadUrl = `https://pbs.twimg.com/media/${picname}?format=${ext}&name=orig`;
 
-    // 如果按住 Shift，直接复制链接
     if (isShiftPressed) {
       await copyToClipboard(downloadUrl);
-      return { success: true, tweetId: urlInfo.tid };
+      return { success: true, tweetId: tid };
     }
 
     await downloadFile(downloadUrl, `${filename}.${ext}`);
-    if (showSuccessMessage) {
+    if (showSuccessMessage && !hasFieldWarning) {
       message.success(i18n.t("messages.downloadSuccess"));
     }
 
-    return { success: true, tweetId: urlInfo.tid };
+    return { success: true, tweetId: tid };
   } catch (error) {
     handleDownloadError(error, i18n.t("messages.imageDownloadFailed"));
     return { success: false };
@@ -118,13 +165,21 @@ export async function downloadVideoMedia({
   try {
     const username = getUserIdFromTweetContainer(tweetContainer);
     const tweetId = getTweetIdFromElement(tweetContainer, username);
-    if (!tweetId) {
+    const hasSrc = src && src.startsWith("https://video.twimg.com");
+
+    // 没有 src 且 tweetId 缺失：技术上无法获取视频 URL，必须阻断
+    if (!tweetId && !hasSrc) {
       message.error(i18n.t("messages.cannotRecognizeTweet"));
       return { success: false };
     }
 
-    const videoUrl =
-      src && src.startsWith("https://video.twimg.com") ? src : await extractVideoUrl(tweetId);
+    const missing = checkMissingFields({ Userid: username, Tid: tweetId }, window.location.href);
+    const hasFieldWarning = missing.length > 0;
+    if (hasFieldWarning) {
+      message.warning(i18n.t("messages.fieldMissing", { fields: missing.join(", ") }));
+    }
+
+    const videoUrl = hasSrc ? src : await extractVideoUrl(tweetId!);
     if (!videoUrl) {
       message.error(i18n.t("messages.videoLinkNotFound"));
       return { success: false, tweetId };
@@ -138,12 +193,12 @@ export async function downloadVideoMedia({
 
     const filename = generateFileName(settings.videoFileName, {
       Userid: username || "unknown",
-      Tid: tweetId,
+      Tid: tweetId || "unknown",
       Time: `${Date.now()}`,
     });
 
     await downloadFile(videoUrl, `${filename}.mp4`);
-    if (showSuccessMessage) {
+    if (showSuccessMessage && !hasFieldWarning) {
       message.success(i18n.t("messages.videoDownloadSuccess"));
     }
 
@@ -174,7 +229,7 @@ export async function downloadTweetMedia({
   const images = getDownloadableImages(tweetContainer);
 
   if (images.length > 0) {
-    return await downloadTweetImages(images, settings);
+    return await downloadTweetImages(images, tweetContainer, settings);
   }
 
   const videos = getDownloadableVideos(tweetContainer);
@@ -239,23 +294,18 @@ async function downloadLightboxImage(
       src: targetMedia.src,
       tweetContainer,
       settings,
-      showSuccessMessage: false,
+      showSuccessMessage: true,
     });
-    if (downloaded.success) {
-      message.success(i18n.t("messages.imagesDownloadSuccess", { count: 1 }));
-    }
     return downloaded.success;
   }
 
   const downloaded = await downloadImageMedia({
     targetImage: targetMedia,
+    tweetContainer,
     settings,
     imageIndex: photoIndex,
-    showSuccessMessage: false,
+    showSuccessMessage: true,
   });
-  if (downloaded.success) {
-    message.success(i18n.t("messages.imagesDownloadSuccess", { count: 1 }));
-  }
   return downloaded.success;
 }
 
@@ -272,26 +322,35 @@ async function downloadLightboxVideo(
     src: video?.src,
     tweetContainer,
     settings,
-    showSuccessMessage: false,
+    showSuccessMessage: true,
   });
-
-  if (downloaded.success) {
-    message.success(i18n.t("messages.videoDownloadSuccess"));
-  }
 
   return downloaded.success;
 }
 
 async function downloadTweetImages(
   images: HTMLImageElement[],
+  tweetContainer: HTMLElement,
   settings: DownloaderSettings,
 ): Promise<boolean> {
+  // 批量下载前统一校验一次，避免每张图都弹 warning
+  let hasFieldWarning = false;
+  const userid = getUserIdFromTweetContainer(tweetContainer);
+  const tid = getTweetIdFromElement(tweetContainer, userid);
+  const missing = checkMissingFields({ Userid: userid, Tid: tid }, window.location.href);
+  if (missing.length > 0) {
+    message.warning(i18n.t("messages.fieldMissing", { fields: missing.join(", ") }));
+    hasFieldWarning = true;
+  }
+
   const downloadPromises = images.map((img, index) =>
     downloadImageMedia({
       targetImage: img,
+      tweetContainer,
       settings,
       imageIndex: index,
       showSuccessMessage: false,
+      skipFieldWarning: true,
     }),
   );
 
@@ -300,16 +359,20 @@ async function downloadTweetImages(
   const failed = results.filter((result) => result.status === "rejected" || !result.value.success);
   const successCount = results.length - failed.length;
   if (successCount === 0) {
-    message.error(i18n.t("messages.imageDownloadFailed"));
+    if (!hasFieldWarning) {
+      message.error(i18n.t("messages.imageDownloadFailed"));
+    }
     return false;
   }
 
-  if (failed.length > 0) {
-    message.warning(
-      i18n.t("messages.imagesDownloadSuccess", { count: `${successCount}/${results.length}` }),
-    );
-  } else {
-    message.success(i18n.t("messages.imagesDownloadSuccess", { count: results.length }));
+  if (!hasFieldWarning) {
+    if (failed.length > 0) {
+      message.warning(
+        i18n.t("messages.imagesDownloadSuccess", { count: `${successCount}/${results.length}` }),
+      );
+    } else {
+      message.success(i18n.t("messages.imagesDownloadSuccess", { count: results.length }));
+    }
   }
 
   return true;

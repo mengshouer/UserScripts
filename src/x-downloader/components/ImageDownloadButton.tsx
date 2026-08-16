@@ -25,6 +25,7 @@ export const handleImageDownload = async ({
   try {
     const downloadResult = await downloadImageMedia({
       targetImage,
+      tweetContainer: tweetContainer || undefined,
       settings,
       isShiftPressed,
     });

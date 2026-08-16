@@ -57,6 +57,7 @@ export const zhTranslations: LocaleData = {
     downloadFailed: "下载失败",
     videoDownloadFailed: "视频下载失败",
     imageDownloadFailed: "图片下载失败",
+    fieldMissing: "无法获取 {fields}，文件名将包含 unknown，可能导致重复且无法溯源",
   },
   ui: {
     downloading: "下载中...",

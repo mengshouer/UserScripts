@@ -61,6 +61,7 @@ export const enTranslations: LocaleData = {
     downloadFailed: "Download failed",
     videoDownloadFailed: "Video download failed",
     imageDownloadFailed: "Image download failed",
+    fieldMissing: "Cannot resolve {fields}, filename will contain unknown, may cause duplicates",
   },
   ui: {
     downloading: "Downloading...",
